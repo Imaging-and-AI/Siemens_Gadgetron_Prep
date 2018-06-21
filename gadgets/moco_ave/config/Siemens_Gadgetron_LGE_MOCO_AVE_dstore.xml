@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gadgetronStreamConfiguration xsi:schemaLocation="http://gadgetron.sf.net/gadgetron gadgetron.xsd"
+        xmlns="http://gadgetron.sf.net/gadgetron"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <!--
+       _____              _____     _____   ______   _______   _____     ____    _   _ 
+      / ____|     /\     |  __ \   / ____| |  ____| |__   __| |  __ \   / __ \  | \ | |
+     | |  __     /  \    | |  | | | |  __  | |__       | |    | |__) | | |  | | |  \| |
+     | | |_ |   / /\ \   | |  | | | | |_ | |  __|      | |    |  _  /  | |  | | | . ` |
+     | |__| |  / ____ \  | |__| | | |__| | | |____     | |    | | \ \  | |__| | | |\  |
+      \_____| /_/    \_\ |_____/   \_____| |______|    |_|    |_|  \_\  \____/  |_| \_|
+                                                                                       
+    -->
+
+    <!-- 
+        GT Plus configuratin file for 2DT cartesian reconstruction on cardiac LGE imaging with MOCO+AVE
+
+        Author: Hui Xue
+        
+        National Heart, Lung and Blood Institute
+        National Institutes of Health
+        10 Center Drive, Bethesda
+        MD 20814
+        USA
+        Email: hui.xue@nih.gov
+    -->
+
+    <!-- reader -->
+    <reader><slot>1008</slot><dll>gadgetron_mricore</dll><classname>GadgetIsmrmrdAcquisitionMessageReader</classname></reader>
+    <reader><slot>1026</slot><dll>gadgetron_mricore</dll><classname>GadgetIsmrmrdWaveformMessageReader</classname></reader>
+
+    <!-- writer -->
+    <writer><slot>1022</slot><dll>gadgetron_mricore</dll><classname>MRIImageWriter</classname></writer>
+
+     <!-- Noise prewhitening -->
+    <gadget><name>NoiseAdjust</name><dll>gadgetron_mricore</dll><classname>NoiseAdjustGadget</classname></gadget>
+
+    <!-- RO asymmetric echo handling -->
+    <gadget><name>AsymmetricEcho</name><dll>gadgetron_mricore</dll><classname>AsymmetricEchoAdjustROGadget</classname></gadget>
+
+    <!-- RO oversampling removal -->
+    <gadget><name>RemoveROOversampling</name><dll>gadgetron_mricore</dll><classname>RemoveROOversamplingGadget</classname></gadget>
+
+    <!-- Data accumulation and trigger gadget -->
+    <gadget>
+        <name>AccTrig</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>AcquisitionAccumulateTriggerGadget</classname>
+        <property><name>trigger_dimension</name><value>slice</value></property>
+        <property><name>sorting_dimension</name><value></value></property>
+    </gadget>
+
+    <gadget>
+        <name>BucketToBuffer</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>BucketToBufferGadget</classname>
+        <property><name>N_dimension</name><value>average</value></property>
+        <property><name>S_dimension</name><value>set</value></property>
+        <property><name>split_slices</name><value>false</value></property>
+        <property><name>ignore_segment</name><value>true</value></property>
+    </gadget>
+
+    <!-- Prep ref -->
+    <gadget>
+        <name>PrepRef</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconCartesianReferencePrepGadget</classname>
+
+        <!-- parameters for debug and timing -->
+        <property><name>debug_folder</name><value></value></property>
+        <property><name>perform_timing</name><value>true</value></property>
+        <property><name>verbose</name><value>true</value></property>
+
+        <!-- averaging across repetition -->
+        <property><name>average_all_ref_N</name><value>true</value></property>
+        <!-- every set has its own kernels -->
+        <property><name>average_all_ref_S</name><value>true</value></property>
+        <!-- whether always to prepare ref if no acceleration is used -->
+        <property><name>prepare_ref_always</name><value>true</value></property>
+    </gadget>
+
+    <!-- Coil compression -->
+    <gadget>
+        <name>CoilCompression</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconEigenChannelGadget</classname>
+
+        <!-- parameters for debug and timing -->
+        <property><name>debug_folder</name><value></value></property>
+        <property><name>perform_timing</name><value>true</value></property>
+        <property><name>verbose</name><value>false</value></property>
+
+        <property><name>average_all_ref_N</name><value>true</value></property>
+        <property><name>average_all_ref_S</name><value>true</value></property>
+
+        <!-- Up stream coil compression -->
+        <property><name>upstream_coil_compression</name><value>true</value></property>
+        <property><name>upstream_coil_compression_thres</name><value>-1</value></property>
+        <property><name>upstream_coil_compression_num_modesKept</name><value>0</value></property>
+    </gadget>
+
+    <!-- Recon -->
+    <gadget>
+        <name>Recon</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconCartesianGrappaGadget</classname>
+
+        <!-- image series -->
+        <property><name>image_series</name><value>0</value></property>
+
+        <!-- Coil map estimation, Inati or Inati_Iter -->
+        <property><name>coil_map_algorithm</name><value>Inati</value></property>
+
+        <!-- Down stream coil compression -->
+        <property><name>downstream_coil_compression</name><value>true</value></property>
+        <property><name>downstream_coil_compression_thres</name><value>0.002</value></property>
+        <property><name>downstream_coil_compression_num_modesKept</name><value>0</value></property>
+
+        <!-- parameters for debug and timing -->
+        <property><name>debug_folder</name><value></value></property>
+        <property><name>perform_timing</name><value>true</value></property>
+        <property><name>verbose</name><value>false</value></property>
+
+        <!-- whether to send out gfactor -->
+        <property><name>send_out_gfactor</name><value>false</value></property>
+    </gadget>
+
+    <!-- Partial fourier handling -->
+    <gadget>
+        <name>PartialFourierHandling</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconPartialFourierHandlingFilterGadget</classname>
+
+        <!-- parameters for debug and timing -->
+        <property><name>debug_folder</name><value></value></property>
+        <property><name>perform_timing</name><value>false</value></property>
+        <property><name>verbose</name><value>false</value></property>
+
+        <!-- if incoming images have this meta field, it will not be processed -->
+        <property><name>skip_processing_meta_field</name><value>Skip_processing_after_recon</value></property>
+
+        <!-- Parfial fourier parameters -->
+        <property><name>partial_fourier_filter_RO_width</name><value>0.15</value></property>
+        <property><name>partial_fourier_filter_E1_width</name><value>0.15</value></property>
+    </gadget>
+
+    <!-- Kspace filtering -->
+    <gadget>
+        <name>KSpaceFilter</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconKSpaceFilteringGadget</classname>
+
+        <!-- parameters for debug and timing -->
+        <property><name>debug_folder</name><value></value></property>
+        <property><name>perform_timing</name><value>false</value></property>
+        <property><name>verbose</name><value>false</value></property>
+
+        <!-- if incoming images have this meta field, it will not be processed -->
+        <property><name>skip_processing_meta_field</name><value>Skip_processing_after_recon</value></property>
+
+        <!-- parameters for kspace filtering -->
+        <property><name>filterRO</name><value>Gaussian</value></property>
+        <property><name>filterRO_sigma</name><value>1.0</value></property>
+        <property><name>filterRO_width</name><value>0.15</value></property>
+
+        <property><name>filterE1</name><value>Gaussian</value></property>
+        <property><name>filterE1_sigma</name><value>1.0</value></property>
+        <property><name>filterE1_width</name><value>0.15</value></property>
+
+        <property><name>filterE2</name><value>Gaussian</value></property>
+        <property><name>filterE2_sigma</name><value>1.0</value></property>
+        <property><name>filterE2_width</name><value>0.15</value></property>
+    </gadget>
+
+        <!-- FOV Adjustment -->
+    <gadget>
+        <name>FOVAdjustment</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconFieldOfViewAdjustmentGadget</classname>
+
+        <!-- parameters for debug and timing -->
+        <property><name>debug_folder</name><value></value></property>
+        <property><name>perform_timing</name><value>false</value></property>
+        <property><name>verbose</name><value>false</value></property>
+    </gadget>
+
+    <!-- Image Array Scaling -->
+    <gadget>
+        <name>Scaling</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconImageArrayScalingGadget</classname>
+
+        <!-- parameters for debug and timing -->
+        <property><name>perform_timing</name><value>false</value></property>
+        <property><name>verbose</name><value>false</value></property>
+
+        <property><name>min_intensity_value</name><value>64</value></property>
+        <property><name>max_intensity_value</name><value>4095</value></property>
+        <property><name>scalingFactor</name><value>10.0</value></property>
+        <property><name>use_constant_scalingFactor</name><value>true</value></property>
+        <property><name>auto_scaling_only_once</name><value>true</value></property>
+        <property><name>scalingFactor_dedicated</name><value>100.0</value></property>
+    </gadget>
+
+    <!-- Image recon accummulator -->
+    <gadget>
+        <name>ImageAcc</name>
+        <dll>gadgetronPrep</dll>
+        <classname>GenericReconAccumulateImage2DTriggerGadget</classname>
+
+        <!-- triggered dimensions -->
+        <property><name>TriggerChannel</name><value>false</value></property>
+        <property><name>TriggerSlice</name><value>false</value></property>
+        <property><name>TriggerContrast</name><value>false</value></property>
+        <property><name>TriggerPhase</name><value>false</value></property>
+        <property><name>TriggerRepetition</name><value>false</value></property>
+        <property><name>TriggerSet</name><value>true</value></property>
+        <property><name>TriggerAverage</name><value>true</value></property>
+
+        <!-- work flow -->
+        <property><name>PassImageImmediately</name><value>false</value></property>
+
+        <!-- debug and info mode -->
+        <property><name>verbose</name><value>false</value></property>
+    </gadget>
+
+    <!-- MOCO AVE, PSIR recon -->
+    <gadget>
+        <name>MoCoAvePSIR</name>
+        <dll>gadgetron_siemens_moco_ave</dll>
+        <classname>GtImageMoCoAvePSIRGadget</classname>
+
+        <!-- ===================================================================================== -->
+        <!-- dimension to perform MOCO -->
+        <property><name>moco_dim</name><value>DIM_Average</value></property>
+
+        <!-- dimension to perform cross-row MOCO, e.g. MOCO between PD and IR images -->
+        <property><name>moco_cross_row_dim</name><value>DIM_Set</value></property>
+
+        <!-- whether to perform averaging -->
+        <property><name>moco_ave</name><value>true</value></property>
+
+        <!-- whether to perform cross-row MOCO -->
+        <property><name>moco_cross_row</name><value>true</value></property>
+
+        <!-- whether all rows have the same reference -->
+        <property><name>cross_row_same_reference</name><value>false</value></property>
+
+        <!-- If cross-row MOCO is performed, which row is selected as the reference -->
+        <property><name>ref_moco_cross_row</name><value>0</value></property>
+
+        <!-- Strategy to pick reference for rows, "SSD" or "Deformation" -->
+        <property><name>row_ref_pick_strategy</name><value>Deformation</value></property>
+
+        <!-- Whether to determine the moco quality while picking the reference -->
+        <property><name>moco_quality_determined_in_ref_picking</name><value>true</value></property>
+
+        <!-- ===================================================================================== -->
+        <!-- Parameters for PSIR -->
+        <!-- Indicate the set index of PD images -->
+        <property><name>PD_set</name><value>1</value></property>
+
+        <!-- Whether to apply extra filtering on PD images -->
+        <property><name>apply_PD_filtering</name><value>true</value></property>
+
+        <!-- filter width for PD images -->
+        <property><name>filter_width</name><value>7</value></property>
+
+        <!-- Scaling factor after surface coil correction -->
+        <property><name>scale_factor_after_SCC</name><value>1000</value></property>
+
+        <!-- Offset to add after surface coil correction -->
+        <property><name>offset_after_SCC</name><value>4096</value></property>
+
+        <!-- PSIR auto windowing -->
+        <property><name>windowing_high_end_percentile</name><value>0.95</value></property>
+
+        <!-- Strategy for surface coil correction, "Median", "FFD", "FFDM", "LeastSquare" -->
+        <property><name>scc_strategy</name><value>LeastSquare</value></property>
+
+        <!-- for "FFD", number of refinements -->
+        <property><name>num_of_refinement_FFD</name><value>2</value></property>
+
+        <!-- for "FFDM", number of maximal refinements -->
+        <property><name>num_of_refinement_max_FFD</name><value>7</value></property>
+
+        <!-- Whether to use PD pixel values in scc map -->
+        <property><name>preserve_PD_for_scc</name><value>true</value></property>
+
+        <!-- whether to perform noise masking -->
+        <property><name>noise_masking</name><value>false</value></property>
+
+        <!-- threshold ratio for noise masking -->
+        <property><name>thres_ratio_noise_masking</name><value>4</value></property>
+
+        <property><name>perform_scc_PSIR</name><value>true</value></property>
+        <property><name>perform_scc_mag_IR</name><value>true</value></property>
+
+        <!-- ===================================================================================== -->
+        <!-- Parameters for image sending -->
+
+        <property><name>send_no_scc_mag_IR</name><value>false</value></property>
+        <property><name>send_no_scc_PSIR</name><value>false</value></property>
+        <property><name>send_out_gfactor_map</name><value>false</value></property>
+        <property><name>send_out_snr_map</name><value>false</value></property>
+        <property><name>send_out_std_map</name><value>false</value></property>
+        <property><name>send_out_PSIR_as_real</name><value>false</value></property>
+
+        <!-- =============================================== -->
+        <!-- For ori images -->
+        <property><name>send_ori</name><value>false</value></property>
+        <property><name>send_moco</name><value>false</value></property>
+        <property><name>send_moco_ave</name><value>false</value></property>
+
+        <property><name>send_ori_mag_IR</name><value>false</value></property>
+        <property><name>send_ori_PSIR</name><value>false</value></property>
+        <property><name>send_ori_mag_PD</name><value>false</value></property>
+
+        <!-- =============================================== -->
+        <!-- For MOCO images -->
+        <property><name>send_moco_mag_IR</name><value>false</value></property>
+        <property><name>send_moco_PSIR</name><value>false</value></property>
+        <property><name>send_moco_mag_PD</name><value>false</value></property>
+
+        <!-- =============================================== -->
+        <!-- For MOCO AVE images -->
+        <property><name>send_moco_ave_mag_IR</name><value>true</value></property>
+        <property><name>send_moco_ave_PSIR</name><value>true</value></property>
+        <property><name>send_moco_ave_mag_PD</name><value>false</value></property>
+
+        <property><name>moco_ave_keep_origial_image_number</name><value>false</value></property>
+
+        <!-- ===================================================================================== -->
+        <!-- Parameters for MOCO -->
+        <!-- MOCO strategy, 'FixedReference', or 'Progressive' -->
+        <property><name>strategy</name><value>FixedReference</value></property>
+        <!-- Image dissimilarity measures, 'SSD' or 'LocalCCR' or 'MutualInformation' -->
+        <property><name>dissimilarity</name><value>LocalCCR</value></property>
+        <!-- Number of levels for the multi-resolution pyramid -->
+        <property><name>level</name><value>4</value></property>
+        <!-- Number of iterations for every pyramid level, level 0 is for the highest resolution -->
+        <property><name>iter_0</name><value>32</value></property>
+        <property><name>iter_1</name><value>64</value></property>
+        <property><name>iter_2</name><value>64</value></property>
+        <property><name>iter_3</name><value>100</value></property>
+        <!-- Strength of registration regularization, in the unit of pixel -->
+        <property><name>regularization_hilbert_strength</name><value>12.0</value></property>
+        <!-- Whether to perform bidirectional MOCO -->
+        <property><name>bidirectional_moco</name><value>false</value></property>
+
+        <!-- ========================================= -->
+        <!-- Image dissimilarity measures for the cross-row MOCO, 'SSD' or 'LocalCCR' or 'MutualInformation' -->
+        <property><name>dissimilarity_cross_row</name><value>LocalCCR</value></property>
+        <!-- Number of levels for the multi-resolution pyramid for the cross-row MOCO -->
+        <property><name>level_cross_row</name><value>3</value></property>
+        <!-- Number of iterations for every pyramid level for the cross-row MOCO, level 0 is for the highest resolution -->
+        <property><name>iter_cross_row_0</name><value>32</value></property>
+        <property><name>iter_cross_row_1</name><value>64</value></property>
+        <property><name>iter_cross_row_2</name><value>100</value></property>
+        <!-- Strength of registration regularization for the cross-row MOCO, in the unit of pixel -->
+        <property><name>regularization_hilbert_strength_cross_row</name><value>12.0</value></property>
+        <!-- Whether to perform bidirectional MOCO for the cross-row MOCO -->
+        <property><name>bidirectional_moco_cross_row</name><value>true</value></property>
+        <!-- Whether to perform apply the divergence free constraint for the cross-row MOCO -->
+        <property><name>divergence_free_constraint_cross_row</name><value>true</value></property>
+
+        <!-- ========================================= -->
+
+        <!-- Threshold for image dissimilarity minimization -->
+        <property><name>dissimilarity_thres</name><value>1e-6</value></property>
+        <!-- Number of sub-division search in minimization -->
+        <property><name>div_num</name><value>3</value></property>
+        <!-- For the bidirectional MOCO, the number of bidirectional iteration -->
+        <property><name>inverse_deform_enforce_iter</name><value>10</value></property>
+        <!-- For the bidirectional MOCO, the weight between forward and inverse MOCO -->
+        <property><name>inverse_deform_enforce_weight</name><value>0.5</value></property>
+
+        <!-- ===================================================================================== -->
+
+        <!-- Fraction of images kept for averaging -->
+        <property><name>percentage_kept_for_averaging</name><value>0.5</value></property>
+
+        <!-- Whether to perform soft averaging -->
+        <property><name>soft_averaging</name><value>true</value></property>
+
+        <!-- ===================================================================================== -->
+        <!-- parameters for debug and timing -->
+        <property><name>debug_folder</name><value></value></property>
+        <property><name>perform_timing</name><value>true</value></property>
+        <property><name>verbose</name><value>true</value></property>
+
+        <property><name>debugFolder_register</name><value></value></property>
+        <property><name>debugFolder_PSIR</name><value></value></property>
+        <property><name>verboseModeMOCO</name><value>false</value></property>
+    </gadget>
+
+    <!-- after recon processing -->
+    <gadget>
+        <name>ComplexToFloat</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>ComplexToFloatGadget</classname>
+    </gadget>
+
+    <gadget>
+        <name>FloatToShort</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>FloatToShortGadget</classname>
+        <property><name>max_intensity</name><value>32767</value></property>
+        <property><name>min_intensity</name><value>-32768</value></property>
+        <property><name>intensity_offset</name><value>0</value></property>
+    </gadget>
+
+    <gadget>
+        <name>ImageFinish</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>ImageFinishGadget</classname>
+    </gadget>
+
+</gadgetronStreamConfiguration>

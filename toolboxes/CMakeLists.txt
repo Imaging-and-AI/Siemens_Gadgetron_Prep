@@ -1,0 +1,11 @@
+
+if (WIN32)
+    ADD_DEFINITIONS(-DTIXML_USE_STL)
+endif (WIN32)
+
+if (MKL_FOUND)
+    INCLUDE_DIRECTORIES( ${MKL_INCLUDE_DIR} )
+    LINK_DIRECTORIES( ${MKL_LIB_DIR} ${MKL_COMPILER_LIB_DIR} )
+endif (MKL_FOUND)
+
+add_subdirectory(core)
