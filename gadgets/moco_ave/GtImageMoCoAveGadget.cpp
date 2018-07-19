@@ -386,10 +386,10 @@ namespace Gadgetron {
         std::vector<std::string> processStr;
         std::vector<std::string> dataRole;
 
-        boost::shared_ptr< std::vector<size_t> > dims = ori.get_dimensions();
-        GDEBUG_CONDITION_STREAM(this->verbose.value(), "[Cha Slice Con Phase Rep Set Ave] = [" << (*dims)[0] << " " << (*dims)[1] << " " << (*dims)[2] << " "
-            << (*dims)[3] << " " << (*dims)[4] << " " << (*dims)[5] << " "
-            << (*dims)[6] << "]");
+        std::vector<size_t> dims = ori.get_dimensions();
+        GDEBUG_CONDITION_STREAM(this->verbose.value(), "[Cha Slice Con Phase Rep Set Ave] = [" << dims[0] << " " << dims[1] << " " << dims[2] << " "
+            << dims[3] << " " << dims[4] << " " << dims[5] << " "
+            << dims[6] << "]");
 
         if (send_ori_)
         {
@@ -455,8 +455,6 @@ namespace Gadgetron {
         ori.get_dimensions(dim);
 
         moco.create(dim);
-        this->fillWithNULL(moco);
-
         mocoPerformed = true;
 
         if (moco_dim_ == DIM_Repetition)
@@ -475,7 +473,6 @@ namespace Gadgetron {
             if (AVE == 1) mocoPerformed = false;
         }
         aveRes.create(dim);
-        this->fillWithNULL(aveRes);
 
         size_t cha, slc, con, phs, rep, set, ave;
 
@@ -503,7 +500,7 @@ namespace Gadgetron {
                                     {
                                         for (rep = 0; rep<REP; rep++)
                                         {
-                                            inputContainer.set(ori(cha, slc, con, phs, rep, set, ave), set + slc * SET, rep);
+                                            inputContainer.set(&ori(cha, slc, con, phs, rep, set, ave), set + slc * SET, rep);
                                         }
                                     }
                                 }
@@ -528,20 +525,20 @@ namespace Gadgetron {
                                     {
                                         for (rep = 0; rep<REP; rep++)
                                         {
-                                            moco(cha, slc, con, phs, rep, set, ave) = &mocoContainer(set + slc * SET, rep);
-                                            moco(cha, slc, con, phs, rep, set, ave)->header_ = ori(cha, slc, con, phs, rep, set, ave)->header_;
-                                            moco(cha, slc, con, phs, rep, set, ave)->attrib_ = ori(cha, slc, con, phs, rep, set, ave)->attrib_;
+                                            moco(cha, slc, con, phs, rep, set, ave) = mocoContainer(set + slc * SET, rep);
+                                            moco(cha, slc, con, phs, rep, set, ave).header_ = ori(cha, slc, con, phs, rep, set, ave).header_;
+                                            moco(cha, slc, con, phs, rep, set, ave).attrib_ = ori(cha, slc, con, phs, rep, set, ave).attrib_;
                                         }
 
-                                        aveRes(cha, slc, con, phs, 0, set, ave) = &aveContainer(0, set + slc * SET);
-                                        aveRes(cha, slc, con, phs, 0, set, ave)->header_ = ori(cha, slc, con, phs, 0, set, ave)->header_;
-                                        aveRes(cha, slc, con, phs, 0, set, ave)->attrib_ = ori(cha, slc, con, phs, 0, set, ave)->attrib_;
+                                        aveRes(cha, slc, con, phs, 0, set, ave) = aveContainer(0, set + slc * SET);
+                                        aveRes(cha, slc, con, phs, 0, set, ave).header_ = ori(cha, slc, con, phs, 0, set, ave).header_;
+                                        aveRes(cha, slc, con, phs, 0, set, ave).attrib_ = ori(cha, slc, con, phs, 0, set, ave).attrib_;
 
                                         if (!moco_ave_keep_origial_image_number_)
                                         {
-                                            // aveRes(cha, slc, con, phs, 0, set, ave)->attrib_.set(ISMRMRD_IMAGE_repetition, 0L);
-                                            aveRes(cha, slc, con, phs, 0, set, ave)->header_.repetition = 0;
-                                            aveRes(cha, slc, con, phs, 0, set, ave)->attrib_.set(GADGETRON_IMAGENUMBER, 0L);
+                                            // aveRes(cha, slc, con, phs, 0, set, ave).attrib_.set(ISMRMRD_IMAGE_repetition, 0L);
+                                            aveRes(cha, slc, con, phs, 0, set, ave).header_.repetition = 0;
+                                            aveRes(cha, slc, con, phs, 0, set, ave).attrib_.set(GADGETRON_IMAGENUMBER, 0L);
                                         }
                                     }
                                 }
@@ -569,7 +566,7 @@ namespace Gadgetron {
                                     {
                                         for (rep = 0; rep<REP; rep++)
                                         {
-                                            inputContainer.set(ori(cha, slc, con, phs, rep, set, ave), con + slc * CON, rep);
+                                            inputContainer.set(&ori(cha, slc, con, phs, rep, set, ave), con + slc * CON, rep);
                                         }
                                     }
                                 }
@@ -594,20 +591,20 @@ namespace Gadgetron {
                                     {
                                         for (rep = 0; rep<REP; rep++)
                                         {
-                                            moco(cha, slc, con, phs, rep, set, ave) = &mocoContainer(con, rep);
-                                            moco(cha, slc, con, phs, rep, set, ave)->header_ = ori(cha, slc, con, phs, rep, set, ave)->header_;
-                                            moco(cha, slc, con, phs, rep, set, ave)->attrib_ = ori(cha, slc, con, phs, rep, set, ave)->attrib_;
+                                            moco(cha, slc, con, phs, rep, set, ave) = mocoContainer(con, rep);
+                                            moco(cha, slc, con, phs, rep, set, ave).header_ = ori(cha, slc, con, phs, rep, set, ave).header_;
+                                            moco(cha, slc, con, phs, rep, set, ave).attrib_ = ori(cha, slc, con, phs, rep, set, ave).attrib_;
                                         }
 
-                                        aveRes(cha, slc, con, phs, 0, set, ave) = &aveContainer(0, con + slc * CON);
-                                        aveRes(cha, slc, con, phs, 0, set, ave)->header_ = ori(cha, slc, con, phs, 0, set, ave)->header_;
-                                        aveRes(cha, slc, con, phs, 0, set, ave)->attrib_ = ori(cha, slc, con, phs, 0, set, ave)->attrib_;
+                                        aveRes(cha, slc, con, phs, 0, set, ave) = aveContainer(0, con + slc * CON);
+                                        aveRes(cha, slc, con, phs, 0, set, ave).header_ = ori(cha, slc, con, phs, 0, set, ave).header_;
+                                        aveRes(cha, slc, con, phs, 0, set, ave).attrib_ = ori(cha, slc, con, phs, 0, set, ave).attrib_;
 
                                         if (!moco_ave_keep_origial_image_number_)
                                         {
-                                            // aveRes(cha, slc, con, phs, 0, set, ave)->attrib_.set(ISMRMRD_IMAGE_repetition, 0L);
-                                            aveRes(cha, slc, con, phs, 0, set, ave)->header_.repetition = 0;
-                                            aveRes(cha, slc, con, phs, 0, set, ave)->attrib_.set(GADGETRON_IMAGENUMBER, 0L);
+                                            // aveRes(cha, slc, con, phs, 0, set, ave).attrib_.set(ISMRMRD_IMAGE_repetition, 0L);
+                                            aveRes(cha, slc, con, phs, 0, set, ave).header_.repetition = 0;
+                                            aveRes(cha, slc, con, phs, 0, set, ave).attrib_.set(GADGETRON_IMAGENUMBER, 0L);
                                         }
                                     }
                                 }
@@ -638,7 +635,7 @@ namespace Gadgetron {
                                     {
                                         for (phs = 0; phs<PHS; phs++)
                                         {
-                                            inputContainer.set(ori(cha, slc, con, phs, rep, set, ave), set + slc * SET, phs);
+                                            inputContainer.set(&ori(cha, slc, con, phs, rep, set, ave), set + slc * SET, phs);
                                         }
                                     }
                                 }
@@ -663,20 +660,20 @@ namespace Gadgetron {
                                     {
                                         for (phs = 0; phs<PHS; phs++)
                                         {
-                                            moco(cha, slc, con, phs, rep, set, ave) = &mocoContainer(set, phs);
-                                            moco(cha, slc, con, phs, rep, set, ave)->header_ = ori(cha, slc, con, phs, rep, set, ave)->header_;
-                                            moco(cha, slc, con, phs, rep, set, ave)->attrib_ = ori(cha, slc, con, phs, rep, set, ave)->attrib_;
+                                            moco(cha, slc, con, phs, rep, set, ave) = mocoContainer(set, phs);
+                                            moco(cha, slc, con, phs, rep, set, ave).header_ = ori(cha, slc, con, phs, rep, set, ave).header_;
+                                            moco(cha, slc, con, phs, rep, set, ave).attrib_ = ori(cha, slc, con, phs, rep, set, ave).attrib_;
                                         }
 
-                                        aveRes(cha, slc, con, 0, rep, set, ave) = &aveContainer(0, set + slc * SET);
-                                        aveRes(cha, slc, con, 0, rep, set, ave)->header_ = ori(cha, slc, con, 0, rep, set, ave)->header_;
-                                        aveRes(cha, slc, con, 0, rep, set, ave)->attrib_ = ori(cha, slc, con, 0, rep, set, ave)->attrib_;
+                                        aveRes(cha, slc, con, 0, rep, set, ave) = aveContainer(0, set + slc * SET);
+                                        aveRes(cha, slc, con, 0, rep, set, ave).header_ = ori(cha, slc, con, 0, rep, set, ave).header_;
+                                        aveRes(cha, slc, con, 0, rep, set, ave).attrib_ = ori(cha, slc, con, 0, rep, set, ave).attrib_;
 
                                         if (!moco_ave_keep_origial_image_number_)
                                         {
-                                            // aveRes(cha, slc, con, 0, rep, set, ave)->attrib_.set(ISMRMRD_IMAGE_phase, 0L);
-                                            aveRes(cha, slc, con, 0, rep, set, ave)->header_.phase = 0;
-                                            aveRes(cha, slc, con, 0, rep, set, ave)->attrib_.set(GADGETRON_IMAGENUMBER, 0L);
+                                            // aveRes(cha, slc, con, 0, rep, set, ave).attrib_.set(ISMRMRD_IMAGE_phase, 0L);
+                                            aveRes(cha, slc, con, 0, rep, set, ave).header_.phase = 0;
+                                            aveRes(cha, slc, con, 0, rep, set, ave).attrib_.set(GADGETRON_IMAGENUMBER, 0L);
                                         }
                                     }
                                 }
@@ -704,7 +701,7 @@ namespace Gadgetron {
                                     {
                                         for (phs = 0; phs<PHS; phs++)
                                         {
-                                            inputContainer.set(ori(cha, slc, con, phs, rep, set, ave), con + slc * CON, phs);
+                                            inputContainer.set(&ori(cha, slc, con, phs, rep, set, ave), con + slc * CON, phs);
                                         }
                                     }
                                 }
@@ -729,20 +726,20 @@ namespace Gadgetron {
                                     {
                                         for (phs = 0; phs<PHS; phs++)
                                         {
-                                            moco(cha, slc, con, phs, rep, set, ave) = &mocoContainer(con, phs);
-                                            moco(cha, slc, con, phs, rep, set, ave)->header_ = ori(cha, slc, con, phs, rep, set, ave)->header_;
-                                            moco(cha, slc, con, phs, rep, set, ave)->attrib_ = ori(cha, slc, con, phs, rep, set, ave)->attrib_;
+                                            moco(cha, slc, con, phs, rep, set, ave) = mocoContainer(con, phs);
+                                            moco(cha, slc, con, phs, rep, set, ave).header_ = ori(cha, slc, con, phs, rep, set, ave).header_;
+                                            moco(cha, slc, con, phs, rep, set, ave).attrib_ = ori(cha, slc, con, phs, rep, set, ave).attrib_;
                                         }
 
-                                        aveRes(cha, slc, con, 0, rep, set, ave) = &aveContainer(0, con + slc * CON);
-                                        aveRes(cha, slc, con, 0, rep, set, ave)->header_ = ori(cha, slc, con, 0, rep, set, ave)->header_;
-                                        aveRes(cha, slc, con, 0, rep, set, ave)->attrib_ = ori(cha, slc, con, 0, rep, set, ave)->attrib_;
+                                        aveRes(cha, slc, con, 0, rep, set, ave) = aveContainer(0, con + slc * CON);
+                                        aveRes(cha, slc, con, 0, rep, set, ave).header_ = ori(cha, slc, con, 0, rep, set, ave).header_;
+                                        aveRes(cha, slc, con, 0, rep, set, ave).attrib_ = ori(cha, slc, con, 0, rep, set, ave).attrib_;
 
                                         if (!moco_ave_keep_origial_image_number_)
                                         {
-                                            // aveRes(cha, slc, con, 0, rep, set, ave)->attrib_.set(ISMRMRD_IMAGE_phase, 0L);
-                                            aveRes(cha, slc, con, 0, rep, set, ave)->header_.phase = 0;
-                                            aveRes(cha, slc, con, 0, rep, set, ave)->attrib_.set(GADGETRON_IMAGENUMBER, 0L);
+                                            // aveRes(cha, slc, con, 0, rep, set, ave).attrib_.set(ISMRMRD_IMAGE_phase, 0L);
+                                            aveRes(cha, slc, con, 0, rep, set, ave).header_.phase = 0;
+                                            aveRes(cha, slc, con, 0, rep, set, ave).attrib_.set(GADGETRON_IMAGENUMBER, 0L);
                                         }
                                     }
                                 }
@@ -773,7 +770,7 @@ namespace Gadgetron {
                                     {
                                         for (ave = 0; ave<AVE; ave++)
                                         {
-                                            inputContainer.set(ori(cha, slc, con, phs, rep, set, ave), set + slc * SET, ave);
+                                            inputContainer.set(&ori(cha, slc, con, phs, rep, set, ave), set + slc * SET, ave);
                                         }
                                     }
                                 }
@@ -798,20 +795,20 @@ namespace Gadgetron {
                                     {
                                         for (ave = 0; ave<AVE; ave++)
                                         {
-                                            moco(cha, slc, con, phs, rep, set, ave) = &mocoContainer(set + slc * SET, ave);
-                                            moco(cha, slc, con, phs, rep, set, ave)->header_ = ori(cha, slc, con, phs, rep, set, ave)->header_;
-                                            moco(cha, slc, con, phs, rep, set, ave)->attrib_ = ori(cha, slc, con, phs, rep, set, ave)->attrib_;
+                                            moco(cha, slc, con, phs, rep, set, ave) = mocoContainer(set + slc * SET, ave);
+                                            moco(cha, slc, con, phs, rep, set, ave).header_ = ori(cha, slc, con, phs, rep, set, ave).header_;
+                                            moco(cha, slc, con, phs, rep, set, ave).attrib_ = ori(cha, slc, con, phs, rep, set, ave).attrib_;
                                         }
 
-                                        aveRes(cha, slc, con, phs, rep, set, 0) = &aveContainer(0, set + slc * SET);
-                                        aveRes(cha, slc, con, phs, rep, set, 0)->header_ = ori(cha, slc, con, phs, rep, set, 0)->header_;
-                                        aveRes(cha, slc, con, phs, rep, set, 0)->attrib_ = ori(cha, slc, con, phs, rep, set, 0)->attrib_;
+                                        aveRes(cha, slc, con, phs, rep, set, 0) = aveContainer(0, set + slc * SET);
+                                        aveRes(cha, slc, con, phs, rep, set, 0).header_ = ori(cha, slc, con, phs, rep, set, 0).header_;
+                                        aveRes(cha, slc, con, phs, rep, set, 0).attrib_ = ori(cha, slc, con, phs, rep, set, 0).attrib_;
 
                                         if (!moco_ave_keep_origial_image_number_)
                                         {
-                                            // aveRes(cha, slc, con, phs, rep, set, 0)->attrib_.set(ISMRMRD_IMAGE_average, 0L);
-                                            aveRes(cha, slc, con, phs, rep, set, 0)->header_.average = 0;
-                                            aveRes(cha, slc, con, phs, rep, set, 0)->attrib_.set(GADGETRON_IMAGENUMBER, 0L);
+                                            // aveRes(cha, slc, con, phs, rep, set, 0).attrib_.set(ISMRMRD_IMAGE_average, 0L);
+                                            aveRes(cha, slc, con, phs, rep, set, 0).header_.average = 0;
+                                            aveRes(cha, slc, con, phs, rep, set, 0).attrib_.set(GADGETRON_IMAGENUMBER, 0L);
                                         }
                                     }
                                 }
@@ -839,7 +836,7 @@ namespace Gadgetron {
                                     {
                                         for (ave = 0; ave<AVE; ave++)
                                         {
-                                            inputContainer.set(ori(cha, slc, con, phs, rep, set, ave), con + slc * CON, ave);
+                                            inputContainer.set(&ori(cha, slc, con, phs, rep, set, ave), con + slc * CON, ave);
                                         }
                                     }
                                 }
@@ -864,20 +861,20 @@ namespace Gadgetron {
                                     {
                                         for (ave = 0; ave<AVE; ave++)
                                         {
-                                            moco(cha, slc, con, phs, rep, set, ave) = &mocoContainer(con, ave);
-                                            moco(cha, slc, con, phs, rep, set, ave)->header_ = ori(cha, slc, con, phs, rep, set, ave)->header_;
-                                            moco(cha, slc, con, phs, rep, set, ave)->attrib_ = ori(cha, slc, con, phs, rep, set, ave)->attrib_;
+                                            moco(cha, slc, con, phs, rep, set, ave) = mocoContainer(con, ave);
+                                            moco(cha, slc, con, phs, rep, set, ave).header_ = ori(cha, slc, con, phs, rep, set, ave).header_;
+                                            moco(cha, slc, con, phs, rep, set, ave).attrib_ = ori(cha, slc, con, phs, rep, set, ave).attrib_;
                                         }
 
-                                        aveRes(cha, slc, con, phs, rep, set, 0) = &aveContainer(0, con + slc * CON);
-                                        aveRes(cha, slc, con, phs, rep, set, 0)->header_ = ori(cha, slc, con, phs, rep, set, 0)->header_;
-                                        aveRes(cha, slc, con, phs, rep, set, 0)->attrib_ = ori(cha, slc, con, phs, rep, set, 0)->attrib_;
+                                        aveRes(cha, slc, con, phs, rep, set, 0) = aveContainer(0, con + slc * CON);
+                                        aveRes(cha, slc, con, phs, rep, set, 0).header_ = ori(cha, slc, con, phs, rep, set, 0).header_;
+                                        aveRes(cha, slc, con, phs, rep, set, 0).attrib_ = ori(cha, slc, con, phs, rep, set, 0).attrib_;
 
                                         if (!moco_ave_keep_origial_image_number_)
                                         {
-                                            // aveRes(cha, slc, con, phs, rep, set, 0)->attrib_.set(ISMRMRD_IMAGE_average, 0L);
-                                            aveRes(cha, slc, con, phs, rep, set, 0)->header_.average = 0;
-                                            aveRes(cha, slc, con, phs, rep, set, 0)->attrib_.set(GADGETRON_IMAGENUMBER, 0L);
+                                            // aveRes(cha, slc, con, phs, rep, set, 0).attrib_.set(ISMRMRD_IMAGE_average, 0L);
+                                            aveRes(cha, slc, con, phs, rep, set, 0).header_.average = 0;
+                                            aveRes(cha, slc, con, phs, rep, set, 0).attrib_.set(GADGETRON_IMAGENUMBER, 0L);
                                         }
                                     }
                                 }

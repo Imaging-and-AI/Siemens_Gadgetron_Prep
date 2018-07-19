@@ -251,6 +251,24 @@ if(WIN32)
   message("For Windows users in particular, for ease of installation we do not reccomend installing these libraries.")
 endif(WIN32)
 
+find_package(Armadillo 4.600 REQUIRED)
+# check whether ILP64 MKL should is used
+if(ARMADILLO_FOUND)
+  set(ARMADILLO_BLAS_LONG_LONG FALSE)
+  if(EXISTS "${ARMADILLO_INCLUDE_DIR}/armadillo_bits/config.hpp")
+    # Read and parse armadillo config.hpp to find out whether BLAS uses long long
+    file(STRINGS "${ARMADILLO_INCLUDE_DIR}/armadillo_bits/config.hpp" _armadillo_blas_long_long REGEX "// #define ARMA_BLAS_LONG_LONG")
+    if ( NOT _armadillo_blas_long_long )
+      set(ARMADILLO_BLAS_LONG_LONG TRUE)
+      message("Armadillo is found to use long long for BLAS calls")
+    else ()
+      message("Armadillo found. Note that ARMADILLO_BLAS_LONG_LONG _must_ be defined in ${ARMADILLO_INCLUDE_DIR}/armadillo_bits/config.hpp to link against the MKL ILP64 interface.")
+    endif ()
+    unset(_armadillo_blas_long_long)
+  endif()
+
+endif()
+
 IF (WIN32)
     set(CMAKE_DEBUG_SUFFIX d CACHE STRING "the debug suffix")
 ENDIF(WIN32)
