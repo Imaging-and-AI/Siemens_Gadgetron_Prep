@@ -132,7 +132,7 @@ namespace Gadgetron {
                     {
                         Gadgetron::subtract(input_(r, m), input_(r, n), diff);
 
-                        Gadgetron::norm2(diff, v);
+                        v =Gadgetron::nrm2(diff);
                         SSD(m, n) = v;
                         SSD(n, m) = v;
                     }
@@ -851,7 +851,7 @@ namespace Gadgetron {
                                 const ImageType& warppedImage = warpped(r, c);
 
                                 Gadgetron::subtract(refImage, warppedImage, diff);
-                                Gadgetron::norm2(diff, v);
+                                v = Gadgetron::nrm2(diff);
                                 mocoQ[r][c].first = v;
                             }
 
