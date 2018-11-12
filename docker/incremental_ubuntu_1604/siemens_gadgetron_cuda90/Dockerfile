@@ -61,18 +61,6 @@ RUN cd /opt/code && \
     make install && \
     /opt/code/gadgetron/docker/manifest --key .io.gadgetron.siemens_to_ismrmrd.sha1 --value `git rev-parse HEAD` 
 
-
-#PHILIPS_TO_ISMRMRD
-RUN cd /opt/code && \
-    git clone https://github.com/ismrmrd/philips_to_ismrmrd.git && \
-    cd philips_to_ismrmrd && \
-    mkdir build && \
-    cd build && \
-    cmake ../ && \
-    make -j $(nproc) && \
-    make install && \
-    /opt/code/gadgetron/docker/manifest --key .io.gadgetron.philips_to_ismrmrd.sha1 --value `git rev-parse HEAD` 
-
 #Assume that the context is the top level of the git repo
 COPY /Siemens_Gadgetron_Prep /opt/code/Siemens_Gadgetron_Prep/
 

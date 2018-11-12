@@ -5,9 +5,9 @@ Since the Siemens_Gadgetron code cannot be cloned inside the container (it would
 The Siemens_Gadgetron repo will be added into the docker image and built after gadgetron.
 
 ```
+cd ~/mrprogs
 git clone git@github.com:NHLBI-MR/Siemens_Gadgetron_Prep.git
-cd Siemens_Gadgetron_Prep
-docker build -t Siemens_Gadgetron_Prep/gadgetron_siemens_ubuntu1604 -f docker/incremental_ubuntu_1604/siemens_gadgetron/Dockerfile .
+docker build --network=host -t siemens_gadgetron_prep/gadgetron_siemens_ubuntu1604 -f Siemens_Gadgetron_Prep/docker/incremental_ubuntu_1604/siemens_gadgetron/Dockerfile .
 ```
 
 And done. 
