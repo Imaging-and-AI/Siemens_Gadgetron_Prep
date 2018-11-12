@@ -1,27 +1,17 @@
-FROM gadgetron/ubuntu1604_base
-
-RUN apt-get update --quiet && \
-    apt-get install --no-install-recommends --no-install-suggests --yes  \
-    net-tools cpio
-    
-RUN apt-get update && apt-get install -y python python-setuptools python-pip python-dev build-essential libgtk2.0-dev
-RUN easy_install -U pip
-RUN apt install --yes python-scipy
-RUN pip install tensorflow matplotlib opencv-python scikit-image
+FROM gadgetron/ubuntu_1604_base
 
 ARG GADGETRON_URL=https://github.com/gadgetron/gadgetron
 ARG GADGETRON_BRANCH=master
 
-RUN mkdir /opt/code
-
 #ISMRMRD
+RUN mkdir /opt/code
 RUN cd /opt/code && \
     git clone https://github.com/ismrmrd/ismrmrd.git && \
     cd ismrmrd && \
     mkdir build && \
     cd build && \
     cmake ../ && \
-    make -j 16 && \
+    make -j $(nproc) && \
     make install
 
 #GADGETRON
@@ -30,8 +20,8 @@ RUN cd /opt/code && \
     cd gadgetron && \
     mkdir build && \
     cd build && \
-    cmake ../ && \
-    make -j 16 && \
+    cmake -DBUILD_WITH_PYTHON3=ON ../ && \
+    make -j $(nproc) && \
     make install && \
     /opt/code/gadgetron/docker/manifest --key .io.gadgetron.gadgetron.sha1 --value `git rev-parse HEAD` && \
     cp ${GADGETRON_HOME}/share/gadgetron/config/gadgetron.xml.example ${GADGETRON_HOME}/share/gadgetron/config/gadgetron.xml && \
@@ -46,14 +36,15 @@ RUN cd /opt/code/ismrmrd && \
 RUN cd /opt/code && \
     git clone https://github.com/ismrmrd/ismrmrd-python.git &&  \
     cd ismrmrd-python && \
-    python setup.py install && \
+    python3 setup.py install && \
     /opt/code/gadgetron/docker/manifest --key .io.gadgetron.ismrmrdpython.sha1 --value `git rev-parse HEAD` 
+
 
 #ISMRMRD PYTHON TOOLS
 RUN cd /opt/code && \
     git clone https://github.com/ismrmrd/ismrmrd-python-tools.git &&  \
     cd ismrmrd-python-tools && \
-    python setup.py install && \
+    python3 setup.py install && \
     /opt/code/gadgetron/docker/manifest --key .io.gadgetron.ismrmrdpythontools.sha1 --value `git rev-parse HEAD` 
 
 #SIEMENS_TO_ISMRMRD
@@ -63,28 +54,40 @@ RUN cd /opt/code && \
     mkdir build && \
     cd build && \
     cmake ../ && \
-    make -j 16 && \
+    make -j $(nproc) && \
     make install && \
     /opt/code/gadgetron/docker/manifest --key .io.gadgetron.siemens_to_ismrmrd.sha1 --value `git rev-parse HEAD` 
 
+
+#PHILIPS_TO_ISMRMRD
+RUN cd /opt/code && \
+    git clone https://github.com/ismrmrd/philips_to_ismrmrd.git && \
+    cd philips_to_ismrmrd && \
+    mkdir build && \
+    cd build && \
+    cmake ../ && \
+    make -j $(nproc) && \
+    make install && \
+    /opt/code/gadgetron/docker/manifest --key .io.gadgetron.philips_to_ismrmrd.sha1 --value `git rev-parse HEAD` 
+
 #Assume that the context is the top level of the git repo
-COPY /Siemens_Gadgetron-source /opt/code/Siemens_Gadgetron/
+COPY /Siemens_Gadgetron_Prep /opt/code/Siemens_Gadgetron_Prep/
 
 #gtprep compilation
-RUN cd /opt/code/Siemens_Gadgetron && \
+RUN cd /opt/code/Siemens_Gadgetron_Prep && \
     mkdir build && \
     cd build && \
     cmake ../ && \
     make -j 16 && \
-    git rev-parse HEAD >> /opt/code/Siemens_Gadgetron_sha1.txt && \
-    /opt/code/gadgetron/docker/manifest --key .io.gadgetron.Siemens_Gadgetron.sha1 --value `git rev-parse HEAD` && \
+    git rev-parse HEAD >> /opt/code/Siemens_Gadgetron_Prep_sha1.txt && \
+    /opt/code/gadgetron/docker/manifest --key .io.gadgetron.Siemens_Gadgetron_Prep.sha1 --value `git rev-parse HEAD` && \
     make install 
 
 #Copy test case file
-RUN cp -f /opt/code/Siemens_Gadgetron/test/integration/test_cases.txt /opt/code/test_cases.txt
-    
+RUN cp -f /opt/code/Siemens_Gadgetron_Prep/test/integration/test_cases.txt /opt/code/test_cases.txt
+
 #Clean up code
-RUN rm -rf /opt/code/Siemens_Gadgetron
+RUN rm -rf /opt/code/Siemens_Gadgetron_Prep
 
 #Clean some MKL stuff
 RUN rm -rf /opt/intel/mkl/include
