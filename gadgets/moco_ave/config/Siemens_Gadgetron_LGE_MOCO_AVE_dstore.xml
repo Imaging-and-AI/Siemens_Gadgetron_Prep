@@ -44,6 +44,12 @@
 
     <!-- Data accumulation and trigger gadget -->
     <gadget>
+        <name>RefDelayedBuf</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>GenericReconReferenceKSpaceDelayedBufferGadget</classname>
+    </gadget>
+
+    <gadget>
         <name>AccTrig</name>
         <dll>gadgetron_mricore</dll>
         <classname>AcquisitionAccumulateTriggerGadget</classname>
