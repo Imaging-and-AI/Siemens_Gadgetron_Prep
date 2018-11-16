@@ -220,7 +220,7 @@
     <!-- Image recon accummulator -->
     <gadget>
         <name>ImageAcc</name>
-        <dll>gadgetronPrep</dll>
+        <dll>gadgetron_mricore</dll>
         <classname>GenericReconAccumulateImage2DTriggerGadget</classname>
 
         <!-- triggered dimensions -->
