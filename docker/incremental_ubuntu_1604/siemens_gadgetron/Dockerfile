@@ -1,4 +1,4 @@
-FROM gadgetron/ubuntu_1604_base
+FROM gadgetron/ubuntu_1604_base_basic
 
 ARG GADGETRON_URL=https://github.com/gadgetron/gadgetron
 ARG GADGETRON_BRANCH=master
