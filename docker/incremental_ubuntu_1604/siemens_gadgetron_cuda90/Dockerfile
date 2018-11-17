@@ -78,6 +78,11 @@ RUN cd /opt/code/Siemens_Gadgetron_Prep && \
 RUN cp -f /opt/code/Siemens_Gadgetron_Prep/test/integration/test_cases.txt /opt/code/test_cases.txt
     
 #Clean up code
+RUN rm -rf /opt/code/gadgetron
+RUN rm -rf /opt/code/ismrmrd
+RUN rm -rf /opt/code/siemens_to_ismrmrd
+RUN rm -rf /opt/code/ismrmrd-python
+RUN rm -rf /opt/code/ismrmrd-python-tools
 RUN rm -rf /opt/code/Siemens_Gadgetron_Prep
 
 #Clean some MKL stuff
