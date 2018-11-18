@@ -102,7 +102,7 @@
 
         <!-- Up stream coil compression -->
         <property><name>upstream_coil_compression</name><value>true</value></property>
-        <property><name>upstream_coil_compression_thres</name><value>-1</value></property>
+        <property><name>upstream_coil_compression_thres</name><value>0.01</value></property>
         <property><name>upstream_coil_compression_num_modesKept</name><value>0</value></property>
     </gadget>
 
@@ -120,7 +120,7 @@
 
         <!-- Down stream coil compression -->
         <property><name>downstream_coil_compression</name><value>true</value></property>
-        <property><name>downstream_coil_compression_thres</name><value>0.002</value></property>
+        <property><name>downstream_coil_compression_thres</name><value>0.02</value></property>
         <property><name>downstream_coil_compression_num_modesKept</name><value>0</value></property>
 
         <!-- parameters for debug and timing -->
