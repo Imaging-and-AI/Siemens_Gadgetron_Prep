@@ -903,8 +903,8 @@ namespace Gadgetron {
                             TransformationDeformationFieldType deformTransform;
                             DeformationFieldType* deformField[D];
 
-                            hoNDArray<ValueType> jac2D;
-                            ValueType meanDeform, maxDeform, meanLogJac2D, maxLogJac2D;
+                            hoNDArray<CoordType> jac2D;
+                            CoordType meanDeform, maxDeform, meanLogJac2D, maxLogJac2D;
 
                             #pragma omp for 
                             for ( c=0; c<(long long)cols[r]; c++ )
@@ -998,6 +998,6 @@ namespace Gadgetron {
     // Instantiation
     // ------------------------------------------------------------
 
-    template class EXPORTGTTOOLBOXCORE GtMoCoAveraging< float, float, 2 >;
-    template class EXPORTGTTOOLBOXCORE GtMoCoAveraging< float, float, 3 >;
+    template class EXPORTGTTOOLBOXCORE GtMoCoAveraging< float, double, 2 >;
+    template class EXPORTGTTOOLBOXCORE GtMoCoAveraging< float, double, 3 >;
 }

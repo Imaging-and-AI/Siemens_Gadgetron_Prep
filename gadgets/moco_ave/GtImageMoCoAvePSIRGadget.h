@@ -112,7 +112,7 @@ protected:
     GADGET_PROPERTY(windowing_high_end_percentile, double, "PSIR auto windowing, high end for histogram", 0.95);
 
     GADGET_PROPERTY_LIMITS(scc_strategy, std::string, "Strategy for surface coil correction", "LeastSquare",
-        GadgetPropertyLimitsEnumeration, "Median", "FFD", "FFDM", "LeastSquare");
+        GadgetPropertyLimitsEnumeration, "LeastSquare");
 
     GADGET_PROPERTY(num_of_refinement_FFD, int, "for 'FFD', number of refinements", 2);
     GADGET_PROPERTY(num_of_refinement_max_FFD, int, "for 'FFDM', number of maximal refinements", 7);

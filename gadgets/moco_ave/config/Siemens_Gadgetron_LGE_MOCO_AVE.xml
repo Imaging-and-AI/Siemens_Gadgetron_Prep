@@ -282,7 +282,7 @@
         <!-- PSIR auto windowing -->
         <property><name>windowing_high_end_percentile</name><value>0.95</value></property>
 
-        <!-- Strategy for surface coil correction, "Median", "FFD", "FFDM", "LeastSquare" -->
+        <!-- Strategy for surface coil correction, "LeastSquare" -->
         <property><name>scc_strategy</name><value>LeastSquare</value></property>
 
         <!-- for "FFD", number of refinements -->

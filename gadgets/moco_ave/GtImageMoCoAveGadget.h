@@ -236,7 +236,7 @@ namespace Gadgetron {
         long segmentation_mode_;
 
         /// moco+averaging
-        Gadgetron::GtMoCoAveraging<float, float, 2> mocoer2D_;
+        Gadgetron::GtMoCoAveraging<float, double, 2> mocoer2D_;
 
         ImageContainer2DMagType mag_container2D_;
 

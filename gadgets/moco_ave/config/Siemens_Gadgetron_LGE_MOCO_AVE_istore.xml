@@ -38,7 +38,7 @@
         <name>IsmrmrdDump</name>
         <dll>gadgetron_mricore</dll>
         <classname>IsmrmrdDumpGadget</classname>
-        <property><name>file_prefix</name><value>DB_LGE_MOCO_AVE</value></property>
+        <property><name>file_prefix</name><value>LGE_MOCO_AVE</value></property>
     </gadget>
 
      <!-- Noise prewhitening -->
@@ -290,7 +290,7 @@
         <!-- PSIR auto windowing -->
         <property><name>windowing_high_end_percentile</name><value>0.95</value></property>
 
-        <!-- Strategy for surface coil correction, "Median", "FFD", "FFDM", "LeastSquare" -->
+        <!-- Strategy for surface coil correction, "LeastSquare" -->
         <property><name>scc_strategy</name><value>LeastSquare</value></property>
 
         <!-- for "FFD", number of refinements -->

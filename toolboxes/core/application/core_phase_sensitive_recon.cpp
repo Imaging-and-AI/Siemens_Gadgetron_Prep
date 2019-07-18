@@ -137,98 +137,16 @@ namespace Gadgetron {
 
             sccMap = input;
 
-            if ( scc_strategy_ == "Median" )
+            ImageMagType gmap;
+            if (gmap_.dimensions_equal(input))
             {
-                GADGET_CHECK_RETURN_FALSE(this->scc_.computeSCC_MedianFilter(input, filter_width_, sccMap));
-                if ( !debugFolder_.empty() ) gt_exporter_.export_image(sccMap, debugFolder_+"SCC_Median");
+                Gadgetron::complex_to_real(gmap_, gmap);
             }
-            else if ( scc_strategy_ == "FFD" )
-            {
-                size_t gridSize[2] = {2, 2};
 
-                ImageMagType gmap;
-                if (gmap_.dimensions_equal(input))
-                {
-                    Gadgetron::complex_to_real(gmap_, gmap);
-                }
-
-                hoNDArray<float> mask;
-                GADGET_CHECK_RETURN_FALSE(this->scc_.computeSCC_FFD(input, gmap, num_of_refinement_FFD_, gridSize, useMask, scaleFactor, thres_ratio_noise_masking_, sccMap, mask));
-                if ( !debugFolder_.empty() ) gt_exporter_.export_image(sccMap, debugFolder_+"SCC_FFD");
-                if ( !debugFolder_.empty() ) gt_exporter_.export_array(mask, debugFolder_ + "SCC_FFD_mask");
-
-                if (preserve_PD_for_scc_)
-                {
-                    size_t num = sccMap.get_number_of_elements();
-
-                    size_t n;
-                    for (n = 0; n < num; n++)
-                    {
-                        if (mask(n) == 1)
-                        {
-                            sccMap(n) = input(n);
-                        }
-                    }
-
-                    if (!debugFolder_.empty()) gt_exporter_.export_image(sccMap, debugFolder_ + "SCC_FFD_InputAssignedBack");
-
-                    ImageMagType sccMapFiltered(sccMap);
-                    Gadgetron::filterMedian(sccMap, filter_width_, sccMapFiltered);
-                    sccMap = sccMapFiltered;
-
-                    if (!debugFolder_.empty()) gt_exporter_.export_image(sccMap, debugFolder_ + "SCC_FFD_InputAssignedBack_Filtered");
-                }
-            }
-            else if (scc_strategy_ == "LeastSquare")
-            {
-                ImageMagType gmap;
-                if (gmap_.dimensions_equal(input))
-                {
-                    Gadgetron::complex_to_real(gmap_, gmap);
-                }
-
-                hoNDArray<float> mask;
-                GADGET_CHECK_RETURN_FALSE(this->scc_.computeSCC_LeastSquare(mag, input, gmap, useMask, filter_width_[0], scaleFactor, thres_ratio_noise_masking_, sccMap, mask));
-                if (!debugFolder_.empty()) gt_exporter_.export_image(sccMap, debugFolder_ + "SCC_LeastSquare");
-                if (!debugFolder_.empty()) gt_exporter_.export_array(mask, debugFolder_ + "SCC_LeastSquare_mask");
-            }
-            else
-            {
-                ImageMagType gmap;
-                if (gmap_.dimensions_equal(input))
-                {
-                    Gadgetron::complex_to_real(gmap_, gmap);
-                }
-
-                size_t gridSize[2] = {2, 2};
-                hoNDArray<float> mask;
-
-                GADGET_CHECK_RETURN_FALSE(this->scc_.computeSCC_FFD_Multiple(input, gmap, num_of_refinement_FFD_, num_of_refinement_max_FFD_, gridSize, useMask, scaleFactor, thres_ratio_noise_masking_, sccMap, mask));
-                if ( !debugFolder_.empty() ) gt_exporter_.export_image(sccMap, debugFolder_+"SCC_FFD_Multiple");
-                if ( !debugFolder_.empty() ) gt_exporter_.export_array(mask, debugFolder_ + "SCC_FFD_Multiple_mask");
-
-                if (preserve_PD_for_scc_)
-                {
-                    size_t num = sccMap.get_number_of_elements();
-
-                    size_t n;
-                    for (n = 0; n < num; n++)
-                    {
-                        if (mask(n) == 1)
-                        {
-                            sccMap(n) = input(n);
-                        }
-                    }
-
-                    if (!debugFolder_.empty()) gt_exporter_.export_image(sccMap, debugFolder_ + "SCC_FFD_Multiple_InputAssignedBack");
-
-                    ImageMagType sccMapFiltered(sccMap);
-                    Gadgetron::filterMedian(sccMap, filter_width_, sccMapFiltered);
-                    sccMap = sccMapFiltered;
-
-                    if (!debugFolder_.empty()) gt_exporter_.export_image(sccMap, debugFolder_ + "SCC_FFD_Multiple_InputAssignedBack_Filtered");
-                }
-            }
+            hoNDArray<float> mask;
+            GADGET_CHECK_RETURN_FALSE(this->scc_.computeSCC_LeastSquare(mag, input, gmap, useMask, filter_width_[0], scaleFactor, thres_ratio_noise_masking_, sccMap, mask));
+            if (!debugFolder_.empty()) gt_exporter_.export_image(sccMap, debugFolder_ + "SCC_LeastSquare");
+            if (!debugFolder_.empty()) gt_exporter_.export_array(mask, debugFolder_ + "SCC_LeastSquare_mask");
         }
         catch(...)
         {
