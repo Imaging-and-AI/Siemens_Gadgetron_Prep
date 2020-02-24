@@ -283,7 +283,7 @@
         <!-- PSIR auto windowing -->
         <property><name>windowing_high_end_percentile</name><value>0.95</value></property>
 
-        <!-- Strategy for surface coil correction, "LeastSquare" -->
+        <!-- Strategy for surface coil correction, "Median", "FFD", "FFDM", "LeastSquare" -->
         <property><name>scc_strategy</name><value>LeastSquare</value></property>
 
         <!-- for "FFD", number of refinements -->
@@ -386,7 +386,7 @@
         <!-- ===================================================================================== -->
 
         <!-- Fraction of images kept for averaging -->
-        <property><name>percentage_kept_for_averaging</name><value>0.5</value></property>
+        <property><name>percentage_kept_for_averaging</name><value>0.6</value></property>
 
         <!-- Whether to perform soft averaging -->
         <property><name>soft_averaging</name><value>true</value></property>

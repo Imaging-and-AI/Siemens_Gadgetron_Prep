@@ -90,7 +90,7 @@ namespace Gadgetron {
         size_t SLC = data->data_.get_size(6);
 
         std::stringstream os;
-        os << "_encoding_" << encoding << "_processing_" << process_called_times_;
+        os << "dataRole_" << dataRole << "_encoding_" << encoding << "_processing_" << process_called_times_;
         std::string str = os.str();
 
         // -------------------------------------------------------------

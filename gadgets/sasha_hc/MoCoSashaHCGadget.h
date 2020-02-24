@@ -15,6 +15,7 @@ namespace Gadgetron {
 
         typedef float real_value_type;
         typedef std::complex<real_value_type> ValueType;
+        typedef Gadgetron::hoNDImage<real_value_type, 2> ImageType;
         typedef ValueType T;
 
         typedef GenericReconImageBase BaseClass;

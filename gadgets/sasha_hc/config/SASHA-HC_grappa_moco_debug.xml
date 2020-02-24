@@ -205,12 +205,12 @@
 
         <property><name>perform_timing</name><value>true</value></property>
         <property><name>verbose</name><value>true</value></property>
-        <property><name>debug_folder</name><value></value></property>
+        <property><name>debug_folder</name><value>sasha_moco</value></property>
 
         <property><name>send_ori</name><value>true</value></property>
         <property><name>send_moco</name><value>true</value></property>
-        <property><name>send_hc</name><value>false</value></property>
-        <property><name>send_diff</name><value>false</value></property>
+        <property><name>send_hc</name><value>true</value></property>
+        <property><name>send_diff</name><value>true</value></property>
 
         <!-- <property><name>send_ori</name><value>true</value></property>
         <property><name>send_moco</name><value>true</value></property>
@@ -245,7 +245,7 @@
         <!-- parameters for debug and timing -->
         <property><name>perform_timing</name><value>true</value></property>
         <property><name>verbose</name><value>true</value></property>
-        <property><name>debug_folder</name><value></value></property>
+        <property><name>debug_folder</name><value>sashat1t2</value></property>
 
         <!-- if incoming images have this meta field, it will not be processed -->
         <property><name>skip_processing_meta_field</name><value>Skip_processing_after_recon</value></property>
@@ -258,21 +258,17 @@
         <property><name>send_map</name><value>true</value></property>
         <property><name>send_sd_map</name><value>false</value></property>
 
-        <property><name>color_lut_map_15T</name><value>MicroDeltaHotMetal.pal</value></property>
-        <property><name>window_center_t1map_15T</name><value>1300</value></property>
-        <property><name>window_width_t1map_15T</name><value>1300</value></property>
-        <property><name>window_center_t2map_15T</name><value>60</value></property>
-        <property><name>window_width_t2map_15T</name><value>120</value></property>
+        <property><name>color_lut_map</name><value>GadgetronT1_SR_1_5T.pal</value></property>
+        <property><name>window_center_map</name><value>1300</value></property>
+        <property><name>window_width_map</name><value>1300</value></property>
 
-        <property><name>color_lut_map_3T</name><value>MicroDeltaHotMetal.pal</value></property>
-        <property><name>window_center_t1map_3T</name><value>1250</value></property>
-        <property><name>window_width_t1map_3T</name><value>2500</value></property>
-        <property><name>window_center_t2map_3T</name><value>60</value></property>
-        <property><name>window_width_t2map_3T</name><value>120</value></property>
+        <property><name>color_lut_map_3T</name><value>GadgetronT1_SR_3T.pal</value></property>
+        <property><name>window_center_map_3T</name><value>1300</value></property>
+        <property><name>window_width_map_3T</name><value>1300</value></property>
 
         <property><name>scaling_factor_map</name><value>1.0</value></property>
 
-        <property><name>color_lut_sd_map</name><value>MicroDeltaHotMetal.pal</value></property>
+        <property><name>color_lut_sd_map</name><value>GadgetronT1_SD.pal</value></property>
         <property><name>window_center_sd_map</name><value>2.0</value></property>
         <property><name>window_width_sd_map</name><value>4.0</value></property>
         <property><name>scaling_factor_sd_map</name><value>100.0</value></property>

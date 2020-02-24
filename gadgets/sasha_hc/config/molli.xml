@@ -15,7 +15,7 @@
     <writer><slot>1022</slot><dll>gadgetron_mricore</dll><classname>MRIImageWriter</classname></writer>
 
     <!-- Flag SASHA-HC lines -->
-    <gadget><name>FlagSashaHC</name><dll>gadgetron_siemens_sasha_hc</dll><classname>FlagSashaHCGadget</classname></gadget>
+    <gadget><name>CalcMolliTI</name><dll>gadgetron_siemens_sasha_hc</dll><classname>CalcMolliTiGadget</classname></gadget>
 
     <!-- Noise prewhitening -->
     <gadget><name>NoiseAdjust</name><dll>gadgetron_mricore</dll><classname>NoiseAdjustGadget</classname></gadget>
@@ -43,7 +43,7 @@
         <property><name>S_dimension</name><value>contrast</value></property>
         <property><name>split_slices</name><value>false</value></property>
         <property><name>ignore_segment</name><value>true</value></property>
-        <property><name>verbose</name><value>false</value></property>
+        <property><name>verbose</name><value>true</value></property>
     </gadget>
 
     <!-- Prep ref -->
@@ -197,42 +197,6 @@
         <classname>SashaHCMultiRepGadget</classname>
     </gadget>
 
-    <!-- T1 SASHA moco -->
-    <gadget>
-        <name>MOCO</name>
-        <dll>gadgetron_siemens_sasha_hc</dll>
-        <classname>MoCoSashaHCGadget</classname>
-
-        <property><name>perform_timing</name><value>true</value></property>
-        <property><name>verbose</name><value>true</value></property>
-        <property><name>debug_folder</name><value></value></property>
-
-        <property><name>send_ori</name><value>true</value></property>
-        <property><name>send_moco</name><value>true</value></property>
-        <property><name>send_hc</name><value>false</value></property>
-        <property><name>send_diff</name><value>false</value></property>
-
-        <!-- <property><name>send_ori</name><value>true</value></property>
-        <property><name>send_moco</name><value>true</value></property>
-        <property><name>send_hc</name><value>true</value></property>
-        <property><name>send_diff</name><value>true</value></property> -->
-
-        <!-- <property><name>skip_processing_on_ori</name><value>true</value></property> -->
-        <!-- <property><name>ts_for_anchor</name><value>1500</value></property> -->
-
-        <property><name>regularization_hilbert_strength</name><value>12.0</value></property>
-        <!-- <property><name>moco_iters</name><value>64 100 100 100 100</value></property> -->
-        <property><name>bidirectional_moco</name><value>true</value></property>
-
-        <!-- <property><name>cross_moco_reg_strength</name><value>16.0</value></property>
-        <property><name>cross_moco_iters</name><value>16 32 100 100 100</value></property>
-        <property><name>cross_moco_bidirectional</name><value>true</value></property>
-        <property><name>cross_moco_divergence_free</name><value>false</value></property> -->
-
-        <!-- <property><name>moco_averaging</name><value>false</value></property>
-        <property><name>percentage_kept_for_averaging</name><value>0.5</value></property> -->
-    </gadget>
-
     <!-- T1 SASHA mapping -->
     <gadget>
         <!-- <name>SASHA</name>
@@ -245,10 +209,7 @@
         <!-- parameters for debug and timing -->
         <property><name>perform_timing</name><value>true</value></property>
         <property><name>verbose</name><value>true</value></property>
-        <property><name>debug_folder</name><value></value></property>
-
-        <!-- if incoming images have this meta field, it will not be processed -->
-        <property><name>skip_processing_meta_field</name><value>Skip_processing_after_recon</value></property>
+        <property><name>debug_folder</name><value>sashat1t2</value></property>
 
         <property><name>imaging_prep_time_from_protocol</name><value>true</value></property>
 
@@ -258,21 +219,17 @@
         <property><name>send_map</name><value>true</value></property>
         <property><name>send_sd_map</name><value>false</value></property>
 
-        <property><name>color_lut_map_15T</name><value>MicroDeltaHotMetal.pal</value></property>
-        <property><name>window_center_t1map_15T</name><value>1300</value></property>
-        <property><name>window_width_t1map_15T</name><value>1300</value></property>
-        <property><name>window_center_t2map_15T</name><value>60</value></property>
-        <property><name>window_width_t2map_15T</name><value>120</value></property>
+        <property><name>color_lut_map</name><value>GadgetronT1_SR_1_5T.pal</value></property>
+        <property><name>window_center_map</name><value>1300</value></property>
+        <property><name>window_width_map</name><value>1300</value></property>
 
-        <property><name>color_lut_map_3T</name><value>MicroDeltaHotMetal.pal</value></property>
-        <property><name>window_center_t1map_3T</name><value>1250</value></property>
-        <property><name>window_width_t1map_3T</name><value>2500</value></property>
-        <property><name>window_center_t2map_3T</name><value>60</value></property>
-        <property><name>window_width_t2map_3T</name><value>120</value></property>
+        <property><name>color_lut_map_3T</name><value>GadgetronT1_SR_3T.pal</value></property>
+        <property><name>window_center_map_3T</name><value>1300</value></property>
+        <property><name>window_width_map_3T</name><value>1300</value></property>
 
         <property><name>scaling_factor_map</name><value>1.0</value></property>
 
-        <property><name>color_lut_sd_map</name><value>MicroDeltaHotMetal.pal</value></property>
+        <property><name>color_lut_sd_map</name><value>GadgetronT1_SD.pal</value></property>
         <property><name>window_center_sd_map</name><value>2.0</value></property>
         <property><name>window_width_sd_map</name><value>4.0</value></property>
         <property><name>scaling_factor_sd_map</name><value>100.0</value></property>

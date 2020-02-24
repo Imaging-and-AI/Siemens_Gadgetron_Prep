@@ -1,7 +1,7 @@
 //ThresholdGadget.h
 
-#ifndef FLAGSASHAHCGADGET_H
-#define FLAGSASHAHCGADGET_H
+#ifndef CALCMOLLITIGADGET_H
+#define CALCMOLLITIGADGET_H
 
 #include "sashahclib_export.h"
 #include "Gadget.h"
@@ -13,13 +13,13 @@
 namespace Gadgetron
 {
 
-    class EXPORTSASHAHC FlagSashaHCGadget :
+    class EXPORTSASHAHC CalcMolliTiGadget :
         public Gadget2<ISMRMRD::AcquisitionHeader, hoNDArray< std::complex<float> > >
     {
     public:
-        GADGET_DECLARE( FlagSashaHCGadget )
+        GADGET_DECLARE( CalcMolliTiGadget )
 
-        FlagSashaHCGadget();
+        CalcMolliTiGadget();
 
     protected:
         virtual int process( GadgetContainerMessage< ISMRMRD::AcquisitionHeader>* m1,
@@ -27,12 +27,10 @@ namespace Gadgetron
 
         virtual int process_config( ACE_Message_Block* mb );
 
-        //  float threshold_level_;
-        bool     new_sat_time_stamp_;
-        uint32_t sat_time_stamp_;
-        int16_t  sat_time_stamp_set_;
-
+        uint32_t ref_last_ksp_timestamp_;
+        uint32_t curr_last_ksp_timestamp_;
+        int16_t  curr_look_locker_set_;
     };
 
 }
-#endif //FLAGSASHAHCGADGET_H
+#endif //CALCMOLLITIGADGET_H

@@ -30,7 +30,7 @@ namespace Gadgetron {
             GDEBUG("Error parsing ISMRMRD Header");
         }
 
-        num_encoding_spaces_ = h.encoding.size();
+        num_encoding_spaces_ = 1;//h.encoding.size();
         GDEBUG_CONDITION_STREAM(verbose.value(), "Number of encoding spaces: " << num_encoding_spaces_);
 
         iters_.resize(4);
@@ -140,14 +140,16 @@ namespace Gadgetron {
             size_t key_frame(0);
             Gadgetron::find_key_frame_SSD_2DT(target, key_frame);
 
-            // perform moco
+            // perform moco (on diff images)
             std::string moco_str = "GenericReconCartesianSpiritGadget, perform moco for " + str_slc;
             if (perform_timing.value()) { gt_timer_local_.start(moco_str.c_str()); }
-            Gadgetron::hoImageRegContainer2DRegistration<real_value_type, float, 2, 2> reg;
+            Gadgetron::hoImageRegContainer2DRegistration<ImageType, ImageType, double> reg;
+
             Gadgetron::perform_moco_fixed_key_frame_2DT(target, key_frame, (real_value_type)(regularization_hilbert_strength.value()), iters_, bidirectional_moco.value(), warp_input, reg);
+
             if (perform_timing.value()) { gt_timer_local_.stop(); }
 
-            // apply the deformation
+            // apply the deformation (on all images)
             moco_str = "GenericReconCartesianSpiritGadget, apply deformation field for " + str_slc;
             if (perform_timing.value()) { gt_timer_local_.start(moco_str.c_str()); }
 
@@ -160,7 +162,7 @@ namespace Gadgetron {
             firstArray_real.squeeze();
             firstArray_imag.squeeze();
 
-            hoNDArray<float> dx, dy;
+            hoNDArray<double> dx, dy;
             reg.deformation_field_[0].to_NDArray(0, dx);
             reg.deformation_field_[1].to_NDArray(0, dy);
 
@@ -279,7 +281,7 @@ namespace Gadgetron {
 				// TS time
 				std::stringstream ss_ts_time;
 				ss_ts_time << "TS" << (int16_t)recon_res_->headers_(n, 0, slc).user_int[4];
-				GDEBUG_STREAM("n: " << n << " " << ss_ts_time.str());
+//				GDEBUG_STREAM("n: " << n << " " << ss_ts_time.str());
 
 				// ------------------------------
 				// Fill in headers
@@ -297,6 +299,7 @@ namespace Gadgetron {
                     m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA");
 
 					m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, ss_ts_time.str().c_str());
+                    m1_sasha->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
 				}
 
 				if (send_moco.value())
@@ -321,7 +324,7 @@ namespace Gadgetron {
 				if (send_hc.value())
 				{
                     m1_sasha_hc->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 1, slc);
-                    m1_sasha_hc->getObjectPtr()->headers_(n, 0, slc).image_series_index += 2;
+                    m1_sasha_hc->getObjectPtr()->headers_(n, 0, slc).image_series_index += 1; // Not +2 because the second contrast already gave it a +1
 					m1_sasha_hc->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
 
                     m1_sasha_hc->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+1*N+slc*N*S];
@@ -329,6 +332,7 @@ namespace Gadgetron {
 
                     m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA_HC");
                     m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA_HC");
+                    m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
 				}
 
 				if (send_diff.value())
@@ -338,10 +342,11 @@ namespace Gadgetron {
 					m1_sasha_diff->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
 
                     m1_sasha_diff->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+0*N+slc*N*S];
-                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA_HC_DIFF");
-
-                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA_HC_DIFF");
+                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE,           "SASHA_HC_DIFF");
+                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT,        "SASHA_HC_DIFF");
                     m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA_HC_DIFF");
+                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
+                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
 				}
 
 				if (send_diff.value() && send_moco.value())
@@ -361,6 +366,7 @@ namespace Gadgetron {
 
                     m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA_HC_DIFF");
                     m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "MOCO");
+                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
 				}
 			}
 

@@ -32,6 +32,7 @@ set( config_files
     config/Siemens_Gadgetron_LGE_MOCO_AVE.xml 
     config/Siemens_Gadgetron_LGE_MOCO_AVE_dstore.xml 
     config/Siemens_Gadgetron_LGE_MOCO_AVE_istore.xml 
+    config/Siemens_Gadgetron_WB_LGE_MOCO_AVE.xml 
     config/Siemens_Gadgetron_DB_LGE_MOCO_AVE_istore.xml
     )
 
@@ -73,10 +74,10 @@ target_link_libraries(gadgetron_siemens_moco_ave
     optimized gadgetron_toolbox_cpuoperator debug gadgetron_toolbox_cpuoperator${CMAKE_DEBUG_SUFFIX}
     optimized gadgetron_mricore debug gadgetron_mricore${CMAKE_DEBUG_SUFFIX}
     optimized gadgetron_toolbox_cpu_image debug gadgetron_toolbox_cpu_image${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_image_analyze_io debug gadgetron_toolbox_image_analyze_io${CMAKE_DEBUG_SUFFIX}
+    ${Boost_LIBRARIES}
     ${ISMRMRD_LIBRARIES}
-    ${FFTW3_LIBRARIES} 
-    ${Boost_LIBRARIES} 
+    ${FFTW3_LIBRARIES}
+    ${ARMADILLO_LIBRARIES}
     optimized ${ACE_LIBRARIES} debug ${ACE_DEBUG_LIBRARY}
     )
 

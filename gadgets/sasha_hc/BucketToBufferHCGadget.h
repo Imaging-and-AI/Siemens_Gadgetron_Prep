@@ -2,6 +2,7 @@
 #define BUCKETTOBUFFERHC_H
 
 #include "sashahclib_export.h"
+#include "Gadget.h"
 #include "BucketToBufferGadget.h"
 
 namespace Gadgetron {
