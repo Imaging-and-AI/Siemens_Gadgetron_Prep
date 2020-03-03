@@ -13,11 +13,12 @@ namespace Gadgetron {
     public:
         GADGET_DECLARE( BucketToBufferHCGadget );
 
-        BucketToBufferHCGadget();
+        // BucketToBufferHCGadget();
+        BucketToBufferHCGadget(const Core::Context& context, const Core::GadgetProperties& props);
         virtual ~BucketToBufferHCGadget();
 
     protected:
-        virtual int process( GadgetContainerMessage<IsmrmrdAcquisitionBucket>* m1 );
+        void process(Core::InputChannel<AcquisitionBucket>& input, Core::OutputChannel& out) override;
     };
 }
 #endif //BUCKETTOBUFFERHC_H

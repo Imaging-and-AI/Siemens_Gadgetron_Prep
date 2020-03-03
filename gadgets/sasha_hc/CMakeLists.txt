@@ -84,9 +84,9 @@ target_link_libraries(gadgetron_siemens_sasha_hc
     optimized gadgetron_toolbox_cpucore_math debug gadgetron_toolbox_cpucore_math${CMAKE_DEBUG_SUFFIX}
     optimized gadgetron_toolbox_cpufft debug gadgetron_toolbox_cpufft${CMAKE_DEBUG_SUFFIX}
     optimized gadgetron_toolbox_cpuklt debug gadgetron_toolbox_cpuklt${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_gadgettools debug gadgetron_toolbox_gadgettools${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_gadgetbase debug gadgetron_gadgetbase${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_cloudbus debug gadgetron_toolbox_cloudbus${CMAKE_DEBUG_SUFFIX}
+    #optimized gadgetron_toolbox_gadgettools debug gadgetron_toolbox_gadgettools${CMAKE_DEBUG_SUFFIX}
+    #optimized gadgetron_gadgetbase debug gadgetron_gadgetbase${CMAKE_DEBUG_SUFFIX}
+    #optimized gadgetron_toolbox_cloudbus debug gadgetron_toolbox_cloudbus${CMAKE_DEBUG_SUFFIX}
     optimized gadgetron_toolbox_log debug gadgetron_toolbox_log${CMAKE_DEBUG_SUFFIX}
     optimized gadgetron_toolbox_mri_core debug gadgetron_toolbox_mri_core${CMAKE_DEBUG_SUFFIX}
     optimized gadgetron_toolbox_cpudwt debug gadgetron_toolbox_cpudwt${CMAKE_DEBUG_SUFFIX}

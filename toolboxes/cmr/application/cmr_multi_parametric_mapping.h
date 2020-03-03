@@ -16,7 +16,7 @@ namespace Gadgetron {
     class EXPORTGTTOOLBOXCMR CmrMultiParametricMapping : public CmrParametricMapping<T>
     {
     public:
-
+        typedef CmrParametricMapping<T> BaseClass;
         typedef CmrMultiParametricMapping<T> Self;
         typedef hoNDArray< T > ArrayType;
 

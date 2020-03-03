@@ -29,12 +29,12 @@ if ( HAS_64_BIT )
 
     set( application_header_files
         application/cmr_sasha_t1_t2_mapping.h
-        #application/cmr_multi_parametric_mapping.h
+        application/cmr_multi_parametric_mapping.h
         )
 
     set( application_src_files 
         application/cmr_sasha_t1_t2_mapping.cpp
-        #application/cmr_multi_parametric_mapping.cpp
+        application/cmr_multi_parametric_mapping.cpp
         )
 
     set( schema_files )

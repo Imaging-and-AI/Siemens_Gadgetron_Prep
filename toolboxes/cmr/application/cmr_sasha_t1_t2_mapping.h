@@ -9,6 +9,7 @@
 
 #include "gadgetron_siemens_toolbox_cmr_export.h"
 #include "cmr_parametric_mapping.h"
+#include "cmr_multi_parametric_mapping.h"
 #include "cmr_sasha_t1_t2_mapping.h"
 
 namespace Gadgetron { 
@@ -22,11 +23,11 @@ namespace Gadgetron {
 //     Ed = exp(-del / b[1]);
 
 template <typename T>
-class EXPORTGTTOOLBOXCMR CmrSashaT1T2Mapping : public CmrParametricMapping<T>
+class EXPORTGTTOOLBOXCMR CmrSashaT1T2Mapping : public CmrMultiParametricMapping<T>
 {
 public:
 
-    typedef CmrParametricMapping<T> BaseClass;
+    typedef CmrMultiParametricMapping<T> BaseClass;
     typedef CmrSashaT1T2Mapping<T> Self;
 
     typedef typename BaseClass::ArrayType ArrayType;

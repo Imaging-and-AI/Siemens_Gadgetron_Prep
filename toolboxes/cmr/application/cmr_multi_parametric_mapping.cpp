@@ -4,7 +4,7 @@
 */
 
 #include "gadgetron_siemens_toolbox_cmr_export.h"
-#include "cmr_parametric_mapping.h"
+#include "cmr_multi_parametric_mapping.h"
 #include "log.h"
 
 #include "hoNDArray_reductions.h"
@@ -198,7 +198,7 @@ template EXPORTGTTOOLBOXCMR void perform_hole_filling(Gadgetron::hoNDImageContai
 // ---------------------------------------------------------------------
 
 template <typename T> 
-CmrParametricMapping<T>::CmrParametricMapping()
+CmrMultiParametricMapping<T>::CmrMultiParametricMapping() : BaseClass()
 {
     fill_holes_in_maps_ = true;
     max_size_of_holes_ = 20;
@@ -221,12 +221,12 @@ CmrParametricMapping<T>::CmrParametricMapping()
 }
 
 template <typename T> 
-CmrParametricMapping<T>::~CmrParametricMapping()
+CmrMultiParametricMapping<T>::~CmrMultiParametricMapping()
 {
 }
 
 template <typename T>
-void CmrParametricMapping<T>::perform_parametric_mapping()
+void CmrMultiParametricMapping<T>::perform_parametric_mapping()
 {
     try
     {
@@ -260,7 +260,7 @@ void CmrParametricMapping<T>::perform_parametric_mapping()
             Gadgetron::clear(sd_para_);
         }
 
-        if (!debug_folder_.empty()) gt_exporter_.export_array(this->data_, debug_folder_ + "CmrParametricMapping_data");
+        if (!debug_folder_.empty()) gt_exporter_.export_array(this->data_, debug_folder_ + "CmrMultiParametricMapping_data");
 
         if (this->verbose_)
         {
@@ -278,7 +278,7 @@ void CmrParametricMapping<T>::perform_parametric_mapping()
         {
             pMask = mask_for_mapping_.get_data_ptr();
 
-            if (!debug_folder_.empty()) gt_exporter_.export_array(this->mask_for_mapping_, debug_folder_ + "CmrParametricMapping_mask_for_mapping");
+            if (!debug_folder_.empty()) gt_exporter_.export_array(this->mask_for_mapping_, debug_folder_ + "CmrMultiParametricMapping_mask_for_mapping");
         }
 
         if (this->perform_timing_) { gt_timer_.start("perform pixel-wise mapping ... "); }
@@ -402,13 +402,13 @@ void CmrParametricMapping<T>::perform_parametric_mapping()
 
         if (this->perform_timing_) { gt_timer_.stop(); }
 
-        if (!debug_folder_.empty()) gt_exporter_.export_array(this->map_, debug_folder_ + "CmrParametricMapping_map");
-        if (!debug_folder_.empty()) gt_exporter_.export_array(this->para_, debug_folder_ + "CmrParametricMapping_para");
+        if (!debug_folder_.empty()) gt_exporter_.export_array(this->map_, debug_folder_ + "CmrMultiParametricMapping_map");
+        if (!debug_folder_.empty()) gt_exporter_.export_array(this->para_, debug_folder_ + "CmrMultiParametricMapping_para");
 
         if (this->compute_SD_maps_)
         {
-            if (!debug_folder_.empty()) gt_exporter_.export_array(this->sd_map_, debug_folder_ + "CmrParametricMapping_sd_map");
-            if (!debug_folder_.empty()) gt_exporter_.export_array(this->sd_para_, debug_folder_ + "CmrParametricMapping_sd_para");
+            if (!debug_folder_.empty()) gt_exporter_.export_array(this->sd_map_, debug_folder_ + "CmrMultiParametricMapping_sd_map");
+            if (!debug_folder_.empty()) gt_exporter_.export_array(this->sd_para_, debug_folder_ + "CmrMultiParametricMapping_sd_para");
         }
 
         if (this->fill_holes_in_maps_)
@@ -428,13 +428,13 @@ void CmrParametricMapping<T>::perform_parametric_mapping()
 
             if (this->perform_timing_) { gt_timer_.stop(); }
 
-            if (!debug_folder_.empty()) gt_exporter_.export_array(this->map_, debug_folder_ + "CmrParametricMapping_map_after_hole_filling");
-            if (!debug_folder_.empty()) gt_exporter_.export_array(this->para_, debug_folder_ + "CmrParametricMapping_para_after_hole_filling");
+            if (!debug_folder_.empty()) gt_exporter_.export_array(this->map_, debug_folder_ + "CmrMultiParametricMapping_map_after_hole_filling");
+            if (!debug_folder_.empty()) gt_exporter_.export_array(this->para_, debug_folder_ + "CmrMultiParametricMapping_para_after_hole_filling");
 
             if (this->compute_SD_maps_)
             {
-                if (!debug_folder_.empty()) gt_exporter_.export_array(this->sd_map_, debug_folder_ + "CmrParametricMapping_sd_map_after_hole_filling");
-                if (!debug_folder_.empty()) gt_exporter_.export_array(this->sd_para_, debug_folder_ + "CmrParametricMapping_sd_para_after_hole_filling");
+                if (!debug_folder_.empty()) gt_exporter_.export_array(this->sd_map_, debug_folder_ + "CmrMultiParametricMapping_sd_map_after_hole_filling");
+                if (!debug_folder_.empty()) gt_exporter_.export_array(this->sd_para_, debug_folder_ + "CmrMultiParametricMapping_sd_para_after_hole_filling");
             }
         }
 
@@ -463,26 +463,26 @@ void CmrParametricMapping<T>::perform_parametric_mapping()
     }
     catch (...)
     {
-        GADGET_THROW("Error happened in CmrParametricMapping<T>::perform_parametric_mapping ... ");
+        GADGET_THROW("Error happened in CmrMultiParametricMapping<T>::perform_parametric_mapping ... ");
     }
 }
 
 template <typename T>
-void CmrParametricMapping<T>::get_initial_guess(const std::vector<T>& ti, const std::vector<T>& yi, std::vector<T>& guess)
+void CmrMultiParametricMapping<T>::get_initial_guess(const std::vector<T>& ti, const std::vector<T>& yi, std::vector<T>& guess)
 {
     guess.clear();
     guess.resize(this->get_num_of_paras(), 0);
 }
 
 template <typename T>
-void CmrParametricMapping<T>::compute_map(const std::vector<T>& ti, const std::vector<T>& yi, const std::vector<T>& guess, std::vector<T>& bi, T& map_v)
+void CmrMultiParametricMapping<T>::compute_map(const std::vector<T>& ti, const std::vector<T>& yi, const std::vector<T>& guess, std::vector<T>& bi, T& map_v)
 {
     bi = guess;
     map_v = 0;
 }
 
 template <typename T>
-void CmrParametricMapping<T>::compute_sd(const std::vector<T>& ti, const std::vector<T>& yi, const std::vector<T>& bi, std::vector<T>& sd, T& map_sd)
+void CmrMultiParametricMapping<T>::compute_sd(const std::vector<T>& ti, const std::vector<T>& yi, const std::vector<T>& bi, std::vector<T>& sd, T& map_sd)
 {
     sd.clear();
     sd.resize(bi.size(), 0);
@@ -491,7 +491,7 @@ void CmrParametricMapping<T>::compute_sd(const std::vector<T>& ti, const std::ve
 }
 
 template <typename T>
-void CmrParametricMapping<T>::compute_sd_impl(const VectorType& ti, const VectorType& yi, const VectorType& bi, const VectorType& res, const hoNDArray<T>& grad, VectorType& sd)
+void CmrMultiParametricMapping<T>::compute_sd_impl(const VectorType& ti, const VectorType& yi, const VectorType& bi, const VectorType& res, const hoNDArray<T>& grad, VectorType& sd)
 {
     try
     {
@@ -558,12 +558,12 @@ void CmrParametricMapping<T>::compute_sd_impl(const VectorType& ti, const Vector
     }
     catch (...)
     {
-        GADGET_THROW("Exceptions happened in CmrParametricMapping<T>::compute_sd_impl(...) ... ");
+        GADGET_THROW("Exceptions happened in CmrMultiParametricMapping<T>::compute_sd_impl(...) ... ");
     }
 }
 
 template <typename T>
-size_t CmrParametricMapping<T>::get_num_of_paras() const
+size_t CmrMultiParametricMapping<T>::get_num_of_paras() const
 {
     return 1;
 }
@@ -572,6 +572,6 @@ size_t CmrParametricMapping<T>::get_num_of_paras() const
 // Instantiation
 // ------------------------------------------------------------
 
-template class EXPORTGTTOOLBOXCMR CmrParametricMapping< float >;
+template class EXPORTGTTOOLBOXCMR CmrMultiParametricMapping< float >;
 
 }
