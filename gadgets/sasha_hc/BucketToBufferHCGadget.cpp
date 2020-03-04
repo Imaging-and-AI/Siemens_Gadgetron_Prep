@@ -1,157 +1,310 @@
 #include "BucketToBufferHCGadget.h"
 
-using BufferKey =  Gadgetron::BucketToBufferGadget::BufferKey;
-
-namespace std {
-    template<>
-    struct less<BufferKey>{
-        bool operator()(const BufferKey& idx1, const BufferKey& idx2) const {
-            return std::tie(idx1.average,idx1.slice,idx1.contrast,idx1.phase,idx1.repetition,idx1.set,idx1.segment) <
-                std::tie(idx2.average,idx2.slice,idx2.contrast,idx2.phase,idx2.repetition,idx2.set,idx2.segment);
-        }
-    };
-
-    template<> struct equal_to<BufferKey>{
-        bool operator()(const BufferKey& idx1, const BufferKey& idx2) const {
-            return idx1.average == idx2.average
-                   && idx1.slice == idx2.slice && idx1.contrast == idx2.contrast && idx1.phase == idx2.phase
-                   && idx1.repetition == idx2.repetition && idx1.set == idx2.set && idx1.segment == idx2.segment;
-        }
-    };
-}
-
 namespace Gadgetron {
 
-    namespace {
-
-        IsmrmrdReconBit& getRBit(std::map<BufferKey, IsmrmrdReconData>& recon_data_buffers,
-            const BufferKey& key, uint16_t espace) {
-
-            // Look up the DataBuffered entry corresponding to this encoding space
-            // create if needed and set the fields of view and matrix size
-            if (recon_data_buffers[key].rbit_.size() < (espace + 1)) {
-                recon_data_buffers[key].rbit_.resize(espace + 1);
-            }
-
-            return recon_data_buffers[key].rbit_[espace];
-        }
-
+    BucketToBufferHCGadget::BucketToBufferHCGadget()
+    {
     }
-
-    BucketToBufferHCGadget::BucketToBufferHCGadget(const Core::Context& context, const Core::GadgetProperties& props)
-    : BucketToBufferGadget(context, props) {}
-
-    // BucketToBufferHCGadget::BucketToBufferHCGadget()
-    // {
-    // }
 
     BucketToBufferHCGadget::~BucketToBufferHCGadget()
     {
         //The buckets array should be empty but just in case, let's make sure all the stuff is released.
     }
 
-    void BucketToBufferHCGadget::process(Core::InputChannel<AcquisitionBucket>& input, Core::OutputChannel& out) {
+    int BucketToBufferHCGadget
+        ::process(GadgetContainerMessage<IsmrmrdAcquisitionBucket>* m1)
+    {
 
-        for (auto acq_bucket : input) {
-            std::map<BufferKey, IsmrmrdReconData> recon_data_buffers;
-            GDEBUG_STREAM("BUCKET_SIZE " << acq_bucket.data_.size() << " ESPACE " << acq_bucket.refstats_.size());
-            // Iterate over the reference data of the bucket
-            for (auto& acq : acq_bucket.ref_) {
-                // Get a reference to the header for this acquisition
+        size_t key;
+        std::map<size_t, GadgetContainerMessage<IsmrmrdReconData>* > recon_data_buffers;
 
-                const auto& acqhdr    = std::get<ISMRMRD::AcquisitionHeader>(acq);
-                auto key              = getKey(acqhdr.idx);
-                uint16_t espace       = acqhdr.encoding_space_ref;
-                IsmrmrdReconBit& rbit = getRBit(recon_data_buffers, key, espace);
-                if (!rbit.ref_) {
-                    rbit.ref_ = makeDataBuffer(acqhdr, header.encoding[espace], acq_bucket.refstats_[espace], true);
-                    rbit.ref_->sampling_ = createSamplingDescription(
-                        header.encoding[espace], acq_bucket.refstats_[espace], acqhdr, true);
-                }
+        //GDEBUG("BucketToBufferGadget::process\n");
 
-                add_acquisition(*rbit.ref_, acq, header.encoding[espace], acq_bucket.refstats_[espace], true);
+        //Some information about the bucket
+        //GDEBUG_STREAM("The Reference part: " << m1->getObjectPtr()->refstats_.size() << std::endl);
+        //GDEBUG_STREAM("   nslices: " << m1->getObjectPtr()->refstats_[0].slice.size() << std::endl);
+        //for (int e=0; e<m1->getObjectPtr()->refstats_.size() ; e++) {
+        //    for (std::set<uint16_t>::iterator it = m1->getObjectPtr()->refstats_[e].kspace_encode_step_1.begin();
+        //         it != m1->getObjectPtr()->refstats_[e].kspace_encode_step_1.end(); ++it) {
+        //        GDEBUG_STREAM("   K1: " <<  *it << std::endl);
+        //    }
+        //}
+        //GDEBUG_STREAM("The data part: " << m1->getObjectPtr()->datastats_.size() << std::endl);
+        //GDEBUG_STREAM("   nslices: " << m1->getObjectPtr()->datastats_[0].slice.size() << std::endl);
+        //for (int e=0; e<m1->getObjectPtr()->datastats_.size() ; e++) {
+        //    for (std::set<uint16_t>::iterator it = m1->getObjectPtr()->datastats_[e].kspace_encode_step_1.begin();
+        //         it != m1->getObjectPtr()->datastats_[e].kspace_encode_step_1.end(); ++it) {
+        //        GDEBUG_STREAM("   K1: " <<  *it << std::endl);
+        //    }
+        //}
 
-                // Stuff the data, header and trajectory into this data buffer
+        //Iterate over the reference data of the bucket
+        IsmrmrdDataBuffered* pCurrDataBuffer = NULL;
+        for (std::vector<IsmrmrdAcquisitionData>::iterator it = m1->getObjectPtr()->ref_.begin();
+            it != m1->getObjectPtr()->ref_.end(); ++it)
+        {
+            //Get a reference to the header for this acquisition
+            ISMRMRD::AcquisitionHeader& acqhdr = *it->head_->getObjectPtr();
+
+            //Generate the key to the corresponding ReconData buffer
+            key = getKey(acqhdr.idx);
+
+            //The storage is based on the encoding space
+            uint16_t espace = acqhdr.encoding_space_ref;
+
+            //GDEBUG_STREAM("espace: " << acqhdr.encoding_space_ref << std::endl);
+            //GDEBUG_STREAM("slice: " << acqhdr.idx.slice << std::endl);
+            //GDEBUG_STREAM("rep: " << acqhdr.idx.repetition << std::endl);
+            //GDEBUG_STREAM("k1: " << acqhdr.idx.kspace_encode_step_1 << std::endl);
+            //GDEBUG_STREAM("k2: " << acqhdr.idx.kspace_encode_step_2 << std::endl);
+            //GDEBUG_STREAM("seg: " << acqhdr.idx.segment << std::endl);
+            //GDEBUG_STREAM("key: " << key << std::endl);
+
+            //Get some references to simplify the notation
+            //the reconstruction bit corresponding to this ReconDataBuffer and encoding space
+            IsmrmrdReconBit& rbit = getRBit(recon_data_buffers, key, espace);
+            //and the corresponding data buffer for the reference data
+            if (!rbit.ref_)
+                rbit.ref_ = IsmrmrdDataBuffered();
+            IsmrmrdDataBuffered& dataBuffer = *rbit.ref_;
+            //this encoding space's xml header info
+            ISMRMRD::Encoding& encoding = hdr_.encoding[espace];
+            //this bucket's reference stats
+            IsmrmrdAcquisitionBucketStats& stats = m1->getObjectPtr()->refstats_[espace];
+
+            //Fill the sampling description for this data buffer, only need to fill the sampling_ once per recon bit
+            if (&dataBuffer != pCurrDataBuffer)
+            {
+                fillSamplingDescription(dataBuffer.sampling_, encoding, stats, acqhdr, true);
+                pCurrDataBuffer = &dataBuffer;
             }
 
-            // Kelvin: Create a copy of reference data for second (high-contrast) encoding space
-            for (auto& acq : acq_bucket.ref_) {
-                // Get a reference to the header for this acquisition
+            //Make sure that the data storage for this data buffer has been allocated
+            //TODO should this check the limits, or should that be done in the stuff function?
+            allocateDataArrays(dataBuffer, acqhdr, encoding, stats, true);
 
-                // NB: Not const anymore...
-                auto& acqhdr    = std::get<ISMRMRD::AcquisitionHeader>(acq);
+            // Stuff the data, header and trajectory into this data buffer
+            stuff(it, dataBuffer, encoding, stats, true);
+        }
 
-                acqhdr.encoding_space_ref = 1;
+        // 2017-02-15 Kelvin: Duplicate arrays for reference lines for the second encoding space
+        pCurrDataBuffer = NULL;
+        for (std::vector<IsmrmrdAcquisitionData>::iterator it = m1->getObjectPtr()->ref_.begin();
+            it != m1->getObjectPtr()->ref_.end(); ++it)
+        {
+            //Get a reference to the header for this acquisition
+            ISMRMRD::AcquisitionHeader& acqhdr = *it->head_->getObjectPtr();
 
-                auto key              = getKey(acqhdr.idx);
-                uint16_t espace       = acqhdr.encoding_space_ref;
-                IsmrmrdReconBit& rbit = getRBit(recon_data_buffers, key, espace);
-                if (!rbit.ref_) {
-                    rbit.ref_ = makeDataBuffer(acqhdr, header.encoding[espace], acq_bucket.refstats_[espace], true);
-                    rbit.ref_->sampling_ = createSamplingDescription(
-                        header.encoding[espace], acq_bucket.refstats_[espace], acqhdr, true);
-                }
+            acqhdr.encoding_space_ref = 1;
 
-                add_acquisition(*rbit.ref_, acq, header.encoding[espace], acq_bucket.refstats_[espace], true);
+            //Generate the key to the corresponding ReconData buffer
+            key = getKey(acqhdr.idx);
 
-                // Stuff the data, header and trajectory into this data buffer
+            //The storage is based on the encoding space
+            uint16_t espace = 1; //acqhdr.encoding_space_ref;
+
+            //GDEBUG_STREAM("espace: " << acqhdr.encoding_space_ref << std::endl);
+            //GDEBUG_STREAM("slice: " << acqhdr.idx.slice << std::endl);
+            //GDEBUG_STREAM("rep: " << acqhdr.idx.repetition << std::endl);
+            //GDEBUG_STREAM("k1: " << acqhdr.idx.kspace_encode_step_1 << std::endl);
+            //GDEBUG_STREAM("k2: " << acqhdr.idx.kspace_encode_step_2 << std::endl);
+            //GDEBUG_STREAM("seg: " << acqhdr.idx.segment << std::endl);
+            //GDEBUG_STREAM("key: " << key << std::endl);
+
+            //Get some references to simplify the notation
+            //the reconstruction bit corresponding to this ReconDataBuffer and encoding space
+            IsmrmrdReconBit& rbit = getRBit(recon_data_buffers, key, espace);
+            //and the corresponding data buffer for the reference data
+
+            if (!rbit.ref_)
+                rbit.ref_ = IsmrmrdDataBuffered();
+            IsmrmrdDataBuffered& dataBuffer = *rbit.ref_;
+
+            //this encoding space's xml header info
+            ISMRMRD::Encoding& encoding = hdr_.encoding[espace];
+
+            //this bucket's reference stats
+            // Kelvin: FIXME: refstats aren't created for each encoding space
+            IsmrmrdAcquisitionBucketStats& stats = m1->getObjectPtr()->refstats_[0];
+
+            //Fill the sampling description for this data buffer, only need to fill the sampling_ once per recon bit
+            if (&dataBuffer != pCurrDataBuffer)
+            {
+                fillSamplingDescription(dataBuffer.sampling_, encoding, stats, acqhdr, true);
+                pCurrDataBuffer = &dataBuffer;
             }
 
-            // Kelvin: Find the limits of the high-contrast lines
-            int16_t iHCLineMin = (int16_t)32767;
-            int16_t iHCLineMax = 0;
+            //Make sure that the data storage for this data buffer has been allocated
+            //TODO should this check the limits, or should that be done in the stuff function?
+            allocateDataArrays(dataBuffer, acqhdr, encoding, stats, true);
 
-            // Iterate over the data of the bucket
-            for (auto& acq : acq_bucket.data_) {
-                // Get a reference to the header for this acquisition
+            // Stuff the data, header and trajectory into this data buffer
+            stuff(it, dataBuffer, encoding, stats, true);
+        }
 
-                const auto& acqhdr    = std::get<ISMRMRD::AcquisitionHeader>(acq);
-                auto key              = getKey(acqhdr.idx);
-                uint16_t espace       = acqhdr.encoding_space_ref;
-                IsmrmrdReconBit& rbit = getRBit(recon_data_buffers, key, espace);
-                if (rbit.data_.data_.empty()) {
-                    rbit.data_ = makeDataBuffer(acqhdr, header.encoding[espace], acq_bucket.datastats_[espace], false);
-                    rbit.data_.sampling_ = createSamplingDescription(
-                        header.encoding[espace], acq_bucket.datastats_[espace], acqhdr, false);
-                }
+        // 2016-10-03 Kelvin: Find the limits of the high-contrast lines
+        int16_t iHCLineMin = (int16_t)6536;
+        int16_t iHCLineMax = 0;
 
-                add_acquisition(rbit.data_, acq, header.encoding[espace], acq_bucket.datastats_[espace], false);
+        //Iterate over the imaging data of the bucket
+        // this is exactly the same code as for the reference data except for
+        // the chunk of the data buffer.
+        pCurrDataBuffer = NULL;
+        for (std::vector<IsmrmrdAcquisitionData>::iterator it = m1->getObjectPtr()->data_.begin();
+            it != m1->getObjectPtr()->data_.end(); ++it)
+        {
+            //Get a reference to the header for this acquisition
+            ISMRMRD::AcquisitionHeader& acqhdr = *it->head_->getObjectPtr();
 
-                // Stuff the data, header and trajectory into this data buffer
+            //Generate the key to the corresponding ReconData buffer
+            key = getKey(acqhdr.idx);
 
-                // 2016-10-03 Kelvin: Update limits for HC images
-                if (acqhdr.idx.contrast)
+            //The storage is based on the encoding space
+            uint16_t espace = acqhdr.encoding_space_ref;
+
+            //GDEBUG_STREAM("espace: " << acqhdr.encoding_space_ref << std::endl);
+            //GDEBUG_STREAM("slice: " << acqhdr.idx.slice << std::endl);
+            //GDEBUG_STREAM("rep: " << acqhdr.idx.repetition << std::endl);
+            //GDEBUG_STREAM("k1: " << acqhdr.idx.kspace_encode_step_1 << std::endl);
+            //GDEBUG_STREAM("k2: " << acqhdr.idx.kspace_encode_step_2 << std::endl);
+            //GDEBUG_STREAM("seg: " << acqhdr.idx.segment << std::endl);
+            //GDEBUG_STREAM("key: " << key << std::endl);
+
+            //Get some references to simplify the notation
+            //the reconstruction bit corresponding to this ReconDataBuffer and encoding space
+            IsmrmrdReconBit& rbit = getRBit(recon_data_buffers, key, espace);
+            //and the corresponding data buffer for the imaging data
+            IsmrmrdDataBuffered& dataBuffer = rbit.data_;
+            //this encoding space's xml header info
+            ISMRMRD::Encoding& encoding = hdr_.encoding[espace];
+            //this bucket's imaging data stats
+            IsmrmrdAcquisitionBucketStats& stats = m1->getObjectPtr()->datastats_[espace];
+
+            //Fill the sampling description for this data buffer, only need to fill sampling_ once per recon bit
+            if (&dataBuffer != pCurrDataBuffer)
+            {
+                fillSamplingDescription(dataBuffer.sampling_, encoding, stats, acqhdr, false);
+                pCurrDataBuffer = &dataBuffer;
+            }
+
+            //Make sure that the data storage for this data buffer has been allocated
+            //TODO should this check the limits, or should that be done in the stuff function?
+            allocateDataArrays(dataBuffer, acqhdr, encoding, stats, false);
+
+            // 2016-10-03 Kelvin: Update limits for HC images
+            if (acqhdr.idx.contrast)
+            {
+                if ((int16_t)acqhdr.idx.kspace_encode_step_1 < iHCLineMin)
                 {
-                    if ((int16_t)acqhdr.idx.kspace_encode_step_1 < iHCLineMin)
-                    {
-                        iHCLineMin = (int16_t)acqhdr.idx.kspace_encode_step_1;
-                        //				GDEBUG_STREAM("Changed iHCLineMin: set: " << (int16_t)acqhdr.idx.set << " lin: " << (int16_t)acqhdr.idx.kspace_encode_step_1 << std::endl);
-                    }
+                    iHCLineMin = (int16_t)acqhdr.idx.kspace_encode_step_1;
+                    //				GDEBUG_STREAM("Changed iHCLineMin: set: " << (int16_t)acqhdr.idx.set << " lin: " << (int16_t)acqhdr.idx.kspace_encode_step_1 << std::endl);
+                }
 
-                    if ((int16_t)acqhdr.idx.kspace_encode_step_1 > iHCLineMax)
-                    {
-                        iHCLineMax = (int16_t)acqhdr.idx.kspace_encode_step_1;
-                    }
+                if ((int16_t)acqhdr.idx.kspace_encode_step_1 > iHCLineMax)
+                {
+                    iHCLineMax = (int16_t)acqhdr.idx.kspace_encode_step_1;
                 }
             }
-            // Kelvin: Find the limits of the high-contrast lines
-            GDEBUG_STREAM( "iHCLineMin: " << iHCLineMin << " iHCLineMax: " << iHCLineMax );
 
-            // Kelvin: TODO: Should re-stuff the shared lines, but it was commented out before... WHY???
+            // Stuff the data, header and trajectory into this data buffer
+            stuff(it, dataBuffer, encoding, stats, false);
 
-            // Send all the ReconData messages
-            GDEBUG("End of bucket reached, sending out %d ReconData buffers\n", recon_data_buffers.size());
+            // 2016-09-28 Kelvin: Duplicate regular images for HC
+        /*
+            if (((int16_t)acqhdr.idx.user[1] == 0)
+              && (((int16_t)acqhdr.idx.kspace_encode_step_1 > 65)))
+        //	  && (((int16_t)acqhdr.idx.kspace_encode_step_1 < 23) || ((int16_t)acqhdr.idx.kspace_encode_step_1 > 65)))
+            {
+                acqhdr.idx.contrast = 1;
+                stuff(it, dataBuffer, encoding, false);
+                acqhdr.idx.contrast = 0;
+            }
+        */
+        }
 
-            for (auto& recon_data_buffer : recon_data_buffers) {
-                if (acq_bucket.waveform_.empty())
-                    out.push(recon_data_buffer.second);
-                else
-                    out.push(recon_data_buffer.second, acq_bucket.waveform_);
+        // 2016-10-03 Kelvin: Re-stuff shared lines
+        GDEBUG_STREAM("iHCLineMin: " << iHCLineMin << " iHCLineMax: " << iHCLineMax);
+        pCurrDataBuffer = NULL;
+        for (std::vector<IsmrmrdAcquisitionData>::iterator it = m1->getObjectPtr()->data_.begin();
+            it != m1->getObjectPtr()->data_.end(); ++it)
+        {
+            //Get a reference to the header for this acquisition
+            ISMRMRD::AcquisitionHeader& acqhdr = *it->head_->getObjectPtr();
+
+            //Generate the key to the corresponding ReconData buffer
+            key = getKey(acqhdr.idx);
+
+            //The storage is based on the encoding space
+            uint16_t espace = acqhdr.encoding_space_ref;
+
+            //GDEBUG_STREAM("espace: " << acqhdr.encoding_space_ref << std::endl);
+            //GDEBUG_STREAM("slice: " << acqhdr.idx.slice << std::endl);
+            //GDEBUG_STREAM("rep: " << acqhdr.idx.repetition << std::endl);
+            //GDEBUG_STREAM("k1: " << acqhdr.idx.kspace_encode_step_1 << std::endl);
+            //GDEBUG_STREAM("k2: " << acqhdr.idx.kspace_encode_step_2 << std::endl);
+            //GDEBUG_STREAM("seg: " << acqhdr.idx.segment << std::endl);
+            //GDEBUG_STREAM("key: " << key << std::endl);
+
+            //Get some references to simplify the notation
+            //the reconstruction bit corresponding to this ReconDataBuffer and encoding space
+            IsmrmrdReconBit& rbit = getRBit(recon_data_buffers, key, espace);
+            //and the corresponding data buffer for the imaging data
+            IsmrmrdDataBuffered& dataBuffer = rbit.data_;
+            //this encoding space's xml header info
+            ISMRMRD::Encoding& encoding = hdr_.encoding[espace];
+            //this bucket's imaging data stats
+            IsmrmrdAcquisitionBucketStats& stats = m1->getObjectPtr()->datastats_[espace];
+
+            //Fill the sampling description for this data buffer, only need to fill sampling_ once per recon bit
+            if (&dataBuffer != pCurrDataBuffer)
+            {
+                fillSamplingDescription(dataBuffer.sampling_, encoding, stats, acqhdr, false);
+                pCurrDataBuffer = &dataBuffer;
+            }
+
+            //Make sure that the data storage for this data buffer has been allocated
+            //TODO should this check the limits, or should that be done in the stuff function?
+            allocateDataArrays(dataBuffer, acqhdr, encoding, stats, false);
+
+            // 2016-10-03 Kelvin: Share lines
+            /*
+            if (acqhdr.idx.contrast == 0)
+            {
+                if (((int16_t)acqhdr.idx.kspace_encode_step_1 < iHCLineMin) || ((int16_t)acqhdr.idx.kspace_encode_step_1 > iHCLineMax))
+                {
+                    acqhdr.idx.contrast = 1;
+                    stuff(it, dataBuffer, encoding, false);
+                    acqhdr.idx.contrast = 0;
+                    GDEBUG_STREAM("     sharing set: " << (int16_t)acqhdr.idx.set << " lin: " << (int16_t)acqhdr.idx.kspace_encode_step_1);
+                } else {
+                    GDEBUG_STREAM(" Not sharing set: " << (int16_t)acqhdr.idx.set << " lin: " << (int16_t)acqhdr.idx.kspace_encode_step_1);
+                }
+            } else {
+                GDEBUG_STREAM("*Not sharing set: " << (int16_t)acqhdr.idx.set << " lin: " << (int16_t)acqhdr.idx.kspace_encode_step_1);
+            }
+            */
+        }
+
+        //Send all the ReconData messages
+        GDEBUG("End of bucket reached, sending out %d ReconData buffers\n", recon_data_buffers.size());
+        for (std::map<size_t, GadgetContainerMessage<IsmrmrdReconData>* >::iterator it = recon_data_buffers.begin(); it != recon_data_buffers.end(); it++)
+        {
+            //GDEBUG_STREAM("Sending: " << it->first << std::endl);
+            if (it->second) {
+                if (this->next()->putq(it->second) == -1) {
+                    it->second->release();
+                    throw std::runtime_error("Failed to pass bucket down the chain\n");
+                }
             }
         }
+
+        //Clear the recondata buffer map
+        recon_data_buffers.clear();  // is this necessary?
+
+        //We can release the incoming bucket now. This will release all of the data it contains.
+        m1->release();
+
+        return GADGET_OK;
     }
-
-    // GADGET_FACTORY_DECLARE( BucketToBufferHCGadget )
-    GADGETRON_GADGET_EXPORT( BucketToBufferHCGadget )
-
+    GADGET_FACTORY_DECLARE(BucketToBufferHCGadget)
 }
