@@ -6,5 +6,13 @@
     {
         "file":"Siemens_Gadgetron/LGE/LGE_MOCO_AVE_OnTheFly_66016_542414246_542414255_1622_20180523-144633/ref/ref_20180524.h5",
         "md5":"c9a5b6ce4c7ae06238107c459156ab8c"
+    },
+    {
+        "file":"Siemens_Gadgetron/T1T2/sasha_hc_t1t2_bh_invivo/sasha_hc_t1t2_bh_invivo.h5",
+        "md5":"16704a334cf4355729e69f561595c3eb"
+    },
+    {
+        "file":"Siemens_Gadgetron/T1T2/sasha_hc_t1t2_bh_invivo/ref/ref_20200303_212404.h5",
+        "md5":"31d64b7b6a8c06031d4fc88945cf5ee5"
     }
 ]
