@@ -36,6 +36,7 @@ set( config_files
     config/SASHA-HC_grappa_moco.xml 
     config/SASHA-HC_grappa_moco_debug.xml 
     config/SASHA-HC_grappa_moco_istore.xml
+    config/SASHA-HC_grappa_moco_dstore.xml
     )
 
 set( config_schema_files
