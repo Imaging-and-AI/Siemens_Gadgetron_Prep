@@ -105,7 +105,7 @@ namespace Gadgetron {
 
                     GDEBUG_STREAM("Searching for " << strT1.str() << " and "<< strT2.str());
 
-                    if (usrParaName == strT1.str() && iT1 < this->meas_max_idx_.set)
+                    if (usrParaName == strT1.str() && iT1 <= this->meas_max_idx_.set)
                     {
                         GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, found SR prep time : " << iT1 << " - " << usrParaValue);
                         for (size_t i = 0; i <= meas_max_idx_.repetition; i++)
@@ -118,7 +118,7 @@ namespace Gadgetron {
                         }
                         iT1++;
                     }
-                    else if (usrParaName == strT2.str() && iT2 < this->meas_max_idx_.set)
+                    else if (usrParaName == strT2.str() && iT2 <= this->meas_max_idx_.set)
                     {
                         GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, found T2 prep time : " << iT2 << " - " << usrParaValue);
                         for (size_t i = 0; i <= meas_max_idx_.repetition; i++)
