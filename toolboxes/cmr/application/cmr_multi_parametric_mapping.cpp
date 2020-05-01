@@ -3,21 +3,20 @@
     \author Hui Xue
 */
 
-#include "gadgetron_siemens_toolbox_cmr_export.h"
+
 #include "cmr_multi_parametric_mapping.h"
-#include "log.h"
+#include <gadgetron/log.h>
 
-#include "hoNDArray_reductions.h"
-#include "hoNDArray_elemwise.h"
-#include "hoNDArray_math.h"
-#include "ho2DArray.h"
-#include "ho3DArray.h"
 
-#include "morphology.h"
-#include "BSplineFFD2D.h"
-#include "hoNDBSpline.h"
+#include <gadgetron/hoNDArray_math.h>
+#include <gadgetron/ho2DArray.h>
+#include <gadgetron/ho3DArray.h>
 
-#include "hoNDArray_linalg.h"
+#include <gadgetron/morphology.h>
+#include <gadgetron/BSplineFFD2D.h>
+#include <gadgetron/hoNDBSpline.h>
+
+#include <gadgetron/hoNDArray_linalg.h>
 
 #include <boost/math/special_functions/sign.hpp>
 
@@ -165,7 +164,7 @@ void perform_hole_filling(hoNDArray<T>& map, T hole, size_t max_size_of_holes, b
 }
 
 // template EXPORTGTTOOLBOXCMR void perform_hole_filling(hoNDArray<float>& map, float hole, size_t max_size_of_holes, bool is_8_connected);
-template EXPORTGTTOOLBOXCMR void perform_hole_filling(hoNDArray<double>& map, double hole, size_t max_size_of_holes, bool is_8_connected);
+template void perform_hole_filling(hoNDArray<double>& map, double hole, size_t max_size_of_holes, bool is_8_connected);
 
 // ---------------------------------------------------------------------
 
@@ -193,7 +192,7 @@ void perform_hole_filling(Gadgetron::hoNDImageContainer2D< hoMRImage<T, 2> >& ma
 }
 
 // template EXPORTGTTOOLBOXCMR void perform_hole_filling(Gadgetron::hoNDImageContainer2D< hoMRImage<float, 2> >& maps, float hole, size_t max_size_of_holes, bool is_8_connected);
-template EXPORTGTTOOLBOXCMR void perform_hole_filling(Gadgetron::hoNDImageContainer2D< hoMRImage<double, 2> >& maps, double hole, size_t max_size_of_holes, bool is_8_connected);
+template void perform_hole_filling(Gadgetron::hoNDImageContainer2D< hoMRImage<double, 2> >& maps, double hole, size_t max_size_of_holes, bool is_8_connected);
 
 // ---------------------------------------------------------------------
 
@@ -549,7 +548,7 @@ void CmrMultiParametricMapping<T>::compute_sd_impl(const VectorType& ti, const V
         Gadgetron::scal((T)(1.0 / (std*std)), hessian);
 
         // take inversion
-        Gadgetron::getri(hessian);
+        Gadgetron::invert(hessian);
 
         for (n = 0; n < N; n++)
         {
@@ -572,6 +571,6 @@ size_t CmrMultiParametricMapping<T>::get_num_of_paras() const
 // Instantiation
 // ------------------------------------------------------------
 
-template class EXPORTGTTOOLBOXCMR CmrMultiParametricMapping< float >;
+template class CmrMultiParametricMapping< float >;
 
 }

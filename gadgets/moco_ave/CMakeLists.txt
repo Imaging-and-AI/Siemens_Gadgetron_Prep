@@ -3,22 +3,6 @@ if (WIN32)
     add_definitions(-D__BUILD_SIEMENS_GADGETRON_MOCO_AVE__)
 endif ()
 
-include_directories(
-    ${ACE_INCLUDE_DIR}
-    ${Boost_INCLUDE_DIR}
-    ${ISMRMRD_INCLUDE_DIR}
-    ${FFTW3_INCLUDE_DIR}
-    ${ARMADILLO_INCLUDE_DIRS}
-    ${HDF5_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/toolboxes
-    ${CMAKE_SOURCE_DIR}/toolboxes/core
-    ${CMAKE_SOURCE_DIR}/toolboxes/core/application
-    ${CMAKE_SOURCE_DIR}/gadgets
-    ${CMAKE_SOURCE_DIR}/gadgets/moco_ave
-  )
-
-INCLUDE_DIRECTORIES(${GADGETRON_INCLUDE_DIR})
-
 IF (WIN32)
     ADD_DEFINITIONS(-DTIXML_USE_STL)
     ADD_DEFINITIONS(-D__BUILD_GADGETS__)
@@ -57,28 +41,18 @@ add_library(gadgetron_siemens_moco_ave SHARED
             ${config_files}
         )
 
-set_target_properties(gadgetron_siemens_moco_ave PROPERTIES VERSION ${GADGETRON_VERSION_STRING} SOVERSION ${GADGETRON_SOVERSION})
 
 target_link_libraries(gadgetron_siemens_moco_ave
     gadgetron_siemens_toolbox_core 
-    optimized gadgetron_toolbox_cpucore debug gadgetron_toolbox_cpucore${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_cpucore_math debug gadgetron_toolbox_cpucore_math${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_cpufft debug gadgetron_toolbox_cpufft${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_cpuklt debug gadgetron_toolbox_cpuklt${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_gadgettools debug gadgetron_toolbox_gadgettools${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_gadgetbase debug gadgetron_gadgetbase${CMAKE_DEBUG_SUFFIX}
-    #optimized gadgetron_toolbox_cloudbus debug gadgetron_toolbox_cloudbus${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_log debug gadgetron_toolbox_log${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_mri_core debug gadgetron_toolbox_mri_core${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_cpudwt debug gadgetron_toolbox_cpudwt${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_cpuoperator debug gadgetron_toolbox_cpuoperator${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_mricore debug gadgetron_mricore${CMAKE_DEBUG_SUFFIX}
-    optimized gadgetron_toolbox_cpu_image debug gadgetron_toolbox_cpu_image${CMAKE_DEBUG_SUFFIX}
-    ${Boost_LIBRARIES}
-    ${ISMRMRD_LIBRARIES}
-    ${FFTW3_LIBRARIES}
-    ${ARMADILLO_LIBRARIES}
-    optimized ${ACE_LIBRARIES} debug ${ACE_DEBUG_LIBRARY}
+    Gadgetron::gadgetron_toolbox_cpucore
+    Gadgetron::gadgetron_toolbox_cpucore_math
+    Gadgetron::gadgetron_toolbox_cpufft
+    Gadgetron::gadgetron_toolbox_cpuklt
+    Gadgetron::gadgetron_toolbox_log
+    Gadgetron::gadgetron_toolbox_mri_core
+    Gadgetron::gadgetron_toolbox_cpudwt
+    Gadgetron::gadgetron_toolbox_cpuoperator
+    Gadgetron::gadgetron_toolbox_cpu_image
     )
 
 install (FILES  ${config_files}

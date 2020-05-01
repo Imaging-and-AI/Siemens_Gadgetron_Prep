@@ -2,9 +2,9 @@
 #include "MoCoSashaHCGadget.h"
 #include <iomanip>
 
-#include "hoNDArray_reductions.h"
-#include "mri_core_def.h"
-#include "cmr_motion_correction.h"
+#include <gadgetron/hoNDArray_reductions.h>
+#include <gadgetron/mri_core_def.h>
+#include <gadgetron/cmr_motion_correction.h>
 
 namespace Gadgetron {
 

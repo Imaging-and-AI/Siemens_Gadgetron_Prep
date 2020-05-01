@@ -4,10 +4,10 @@
 */
 
 #include "core_surface_coil_correction.h"
-#include "hoNDArray_utils.h"
-#include "hoNDArray_elemwise.h"
-#include "hoNDImage_util.h"
-#include "morphology.h"
+#include <gadgetron/hoNDArray_utils.h>
+#include <gadgetron/hoNDArray_elemwise.h>
+#include <gadgetron/hoNDImage_util.h>
+#include <gadgetron/morphology.h>
 
 namespace Gadgetron { 
 
@@ -399,6 +399,6 @@ namespace Gadgetron {
     // Instantiation
     // ------------------------------------------------------------
 
-    template class EXPORTGTTOOLBOXCORE GtSurfaceCoilCorrection< float >;
-    template class EXPORTGTTOOLBOXCORE GtSurfaceCoilCorrection< double >;
+    template class GtSurfaceCoilCorrection< float >;
+    template class GtSurfaceCoilCorrection< double >;
 }

@@ -5,33 +5,34 @@
 
 #pragma once
 
-#include "gadgetron_siemens_toolbox_core_export.h"
-#include "hoMRImage.h"
-#include "ho2DArray.h"
-#include "ho3DArray.h"
-#include "ho4DArray.h"
-#include "ho5DArray.h"
-#include "ho6DArray.h"
-#include "ho7DArray.h"
-#include "hoMatrix.h"
-#include "hoNDArray_linalg.h"
-#include "hoNDFFT.h"
-#include "hoNDKLT.h"
-#include "hoNDArray_utils.h"
-#include "hoNDArray_elemwise.h"
-#include "hoNDImage_util.h"
-#include "hoMRImage.h"
-#include "hoNDArray_reductions.h"
-#include "hoNDArray_linalg.h"
-#include "BSplineFFD2D.h"
-#include "BSplineFFD3D.h"
-#include "BSplineFFD4D.h"
-#include "ImageIOAnalyze.h"
+
+#include <gadgetron/hoMRImage.h>
+#include <gadgetron/ho2DArray.h>
+#include <gadgetron/ho3DArray.h>
+#include <gadgetron/ho4DArray.h>
+#include <gadgetron/ho5DArray.h>
+#include <gadgetron/ho6DArray.h>
+#include <gadgetron/ho7DArray.h>
+
+#include <gadgetron/hoMatrix.h>
+#include <gadgetron/hoNDArray_linalg.h>
+#include <gadgetron/hoNDFFT.h>
+#include <gadgetron/hoNDKLT.h>
+#include <gadgetron/hoNDArray_utils.h>
+#include <gadgetron/hoNDArray_elemwise.h>
+#include <gadgetron/hoNDImage_util.h>
+#include <gadgetron/hoMRImage.h>
+#include <gadgetron/hoNDArray_reductions.h>
+#include <gadgetron/hoNDArray_linalg.h>
+#include <gadgetron/BSplineFFD2D.h>
+#include <gadgetron/BSplineFFD3D.h>
+#include <gadgetron/BSplineFFD4D.h>
+#include <gadgetron/ImageIOAnalyze.h>
 
 namespace Gadgetron { 
 
     template<typename ValueType>
-    class EXPORTGTTOOLBOXCORE GtSurfaceCoilCorrection
+    class GtSurfaceCoilCorrection
     {
     public:
 

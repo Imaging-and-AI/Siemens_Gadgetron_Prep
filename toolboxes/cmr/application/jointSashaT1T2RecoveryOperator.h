@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "curveFittingOperator.h"
+#include <gadgetron/curveFittingOperator.h>
 #include <boost/math/special_functions/sign.hpp>
 
 namespace Gadgetron {

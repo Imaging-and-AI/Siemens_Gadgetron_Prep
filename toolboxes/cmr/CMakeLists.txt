@@ -1,29 +1,7 @@
 # this toolbox contains some key algorithms for cmr related applications
 
-if (WIN32)
-    ADD_DEFINITIONS(-D__BUILD_GADGETRON_SIEMENS_TOOLBOX_CMR__)
-endif (WIN32)
 
-if(WIN32)
-    link_directories(${Boost_LIBRARY_DIRS})
-endif(WIN32)
 
-include_directories(
-    ${ACE_INCLUDE_DIR}
-    ${Boost_INCLUDE_DIR}
-    ${ISMRMRD_INCLUDE_DIR}
-    ${FFTW3_INCLUDE_DIR}
-    ${ARMADILLO_INCLUDE_DIRS}
-    ${MKL_INCLUDE_DIR}
-    ${CMAKE_SOURCE_DIR}/toolboxes
-    ${CMAKE_SOURCE_DIR}/toolboxes/cmr
-    ${CMAKE_SOURCE_DIR}/gadgets
-)
-
-INCLUDE_DIRECTORIES(${GADGETRON_INCLUDE_DIR})
-
-set( cmr_header_files gadgetron_siemens_toolbox_cmr_export.h )
-set( cmr_src_files )
 
 set( application_header_files
     application/cmr_sasha_t1_t2_mapping.h
@@ -51,20 +29,22 @@ add_library(gadgetron_siemens_toolbox_cmr SHARED ${source_files})
 set_target_properties(gadgetron_siemens_toolbox_cmr PROPERTIES VERSION ${GADGETRON_VERSION_STRING} SOVERSION ${GADGETRON_SOVERSION})
 
 target_link_libraries(gadgetron_siemens_toolbox_cmr
-                        ${MKL_LIBRARIES}
-                        ${MATLAB_LIBRARIES}
-                        ${Boost_LIBRARIES}
-                        ${ISMRMRD_LIBRARIES}
-                        optimized  gadgetron_toolbox_cpufft debug gadgetron_toolbox_cpufft${CMAKE_DEBUG_SUFFIX}
-                        optimized  gadgetron_toolbox_cpuklt debug gadgetron_toolbox_cpuklt${CMAKE_DEBUG_SUFFIX}
-                        optimized  gadgetron_toolbox_image_analyze_io debug gadgetron_toolbox_image_analyze_io${CMAKE_DEBUG_SUFFIX}
-                        optimized gadgetron_toolbox_cpucore debug gadgetron_toolbox_cpucore${CMAKE_DEBUG_SUFFIX}
-                        optimized gadgetron_toolbox_cpucore_math debug gadgetron_toolbox_cpucore_math${CMAKE_DEBUG_SUFFIX}
-                        optimized gadgetron_toolbox_mri_core debug gadgetron_toolbox_mri_core${CMAKE_DEBUG_SUFFIX}
-                        optimized gadgetron_toolbox_log debug gadgetron_toolbox_log${CMAKE_DEBUG_SUFFIX}
-                        optimized gadgetron_toolbox_cpudwt debug gadgetron_toolbox_cpudwt${CMAKE_DEBUG_SUFFIX} 
-                        optimized gadgetron_toolbox_cmr debug gadgetron_toolbox_cmr${CMAKE_DEBUG_SUFFIX} 
-                        optimized gadgetron_toolbox_pr debug gadgetron_toolbox_pr${CMAKE_DEBUG_SUFFIX} 
-                        optimized gadgetron_toolbox_cpu_image debug gadgetron_toolbox_cpu_image${CMAKE_DEBUG_SUFFIX} )
+                        Gadgetron::gadgetron_core
+                        Gadgetron::gadgetron_toolbox_cpufft
+                        Gadgetron::gadgetron_toolbox_cpuklt
+                        Gadgetron::gadgetron_toolbox_image_analyze_io
+                        Gadgetron::gadgetron_toolbox_cpucore
+                        Gadgetron::gadgetron_toolbox_cpucore_math
+                        Gadgetron::gadgetron_toolbox_mri_core
+                        Gadgetron::gadgetron_toolbox_log
+                        Gadgetron::gadgetron_toolbox_cpudwt
+                        Gadgetron::gadgetron_toolbox_cmr
+                        Gadgetron::gadgetron_toolbox_pr
+                        Gadgetron::gadgetron_toolbox_cpu_image )
+
+target_include_directories(gadgetron_siemens_toolbox_cmr PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/application>
+        )
 
 install(TARGETS gadgetron_siemens_toolbox_cmr DESTINATION lib)

@@ -1,19 +1,17 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.10)
 
 project(siemens_gadgetron)
 
 # --- Provide good defaults for searching for packages (i.e. ismrmrd)
-set(CMAKE_PREFIX_PATH "")
-if(CMAKE_PREFIX_PATH)
-  list(APPEND CMAKE_PREFIX_PATH "/usr/local")
-endif()
 if(EXISTS $ENV{CMAKE_PREFIX_PATH})
   list(APPEND CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH})
 endif()
 if(EXISTS $ENV{ISMRMRD_HOME})
   list(APPEND CMAKE_PREFIX_PATH $ENV{ISMRMRD_HOME})
 endif()
-list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+if (CMAKE_PREFIX_PATH)
+    list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+endif ()
 message(STATUS "Looking for packages in : ${CMAKE_PREFIX_PATH}")
 # ---
 
@@ -21,19 +19,9 @@ message(STATUS "Looking for packages in : ${CMAKE_PREFIX_PATH}")
 if (APPLE)
     cmake_policy(SET CMP0042 NEW)
 endif()
-
+set(CMAKE_CXX_STANDARD 17)
 # Require C++11 support
 include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-
-if (COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif (COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
 
 # check the compiler version
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -56,27 +44,7 @@ else()
   message(WARNING "Unsupported compiler!")
 endif()
 
-#VERSIONING AND INSTALL PATHS
-set(GADGETRON_VERSION_MAJOR 3)
-set(GADGETRON_VERSION_MINOR 16)
-set(GADGETRON_VERSION_PATCH 0) 
-set(GADGETRON_VERSION_STRING ${GADGETRON_VERSION_MAJOR}.${GADGETRON_VERSION_MINOR}.${GADGETRON_VERSION_PATCH})
-set(GADGETRON_SOVERSION ${GADGETRON_VERSION_MAJOR}.${GADGETRON_VERSION_MINOR})
-find_package(Git)
-if (GIT_FOUND)
-  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE SIEMENS_GADGETRON_GIT_SHA1_HASH)
-  string(STRIP ${SIEMENS_GADGETRON_GIT_SHA1_HASH} SIEMENS_GADGETRON_GIT_SHA1_HASH)
-else()
-  set(SIEMENS_GADGETRON_GIT_SHA1_HASH "NA")
-endif()
-
-set(GADGETRON_INSTALL_CMAKE_PATH share/gadgetron/cmake)
-set(GADGETRON_INSTALL_CONFIG_PATH share/gadgetron/config)
-set(GADGETRON_INSTALL_MATLAB_PATH share/gadgetron/matlab)
-set(GADGETRON_INSTALL_PYTHON_MODULE_PATH share/gadgetron/python)
-set(GADGETRON_INSTALL_SCHEMA_PATH schema)
-set(GADGETRON_INSTALL_INCLUDE_PATH include/gadgetron)
-
+find_package(Gadgetron CONFIG REQUIRED)
 #Set the build type to Release if not specified
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -137,11 +105,6 @@ else (WIN32)
             set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -stdlib=libc++")
         else ()
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
-            if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4")
-                set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
-            else()
-                set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++14")
-            endif()
         endif ()
     endif ()
 endif (WIN32)
@@ -165,109 +128,13 @@ if (BUILD_FOR_TIMING)
     ADD_DEFINITIONS(-DBUILD_WITH_TIMING)
 endif (BUILD_FOR_TIMING)
 
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-# necessary for Windows and RHEL <=6 systems
-set(Boost_NO_BOOST_CMAKE ON)
 
 if(WIN32)
   add_definitions( -DBOOST_ALL_NO_LIB )
   add_definitions( -DBOOST_ALL_DYN_LINK )
 endif(WIN32)
 
-###############################################################
-#Bootstrap search for libraries (We need to find cmake modules in Gadgetron)
-###############################################################
 
-message("GADGETRON_HOME is ${GADGETRON_HOME}")
-
-find_path(GADGETRON_CMAKE_MODULES FindGadgetron.cmake HINTS
-  $ENV{GADGETRON_HOME}/share/gadgetron/cmake
-  ${GADGETRON_HOME}/share/gadgetron/cmake
-  /usr/local/share/gadgetron/cmake)
-
-if (NOT GADGETRON_CMAKE_MODULES)
-   #TODO: Check if path found otherwise create error
-   MESSAGE(FATAL_ERROR "GADGETRON_CMAKE_MODULES cannot be found. 
-   Try to set GADGETRON_HOME environment variable.")
-endif(NOT GADGETRON_CMAKE_MODULES)
-
-find_path(ISMRMRD_CMAKE_MODULES ISMRMRDConfig.cmake  HINTS
-  $ENV{GADGETRON_HOME}/lib/cmake/ISMRMRD 
-  ${GADGETRON_HOME}/lib/cmake/ISMRMRD 
-  /usr/local/lib/cmake/ISMRMRD)
-
-if (NOT ISMRMRD_CMAKE_MODULES)
-   #TODO: Check if path found otherwise create error
-   MESSAGE(FATAL_ERROR "ISMRMRD_CMAKE_MODULES cannot be found. 
-   Try to set GADGETRON_HOME environment variable.")
-endif(NOT ISMRMRD_CMAKE_MODULES)
-
-set(CMAKE_MODULE_PATH ${GADGETRON_CMAKE_MODULES} ${ISMRMRD_CMAKE_MODULES} ${CMAKE_SOURCE_DIR}/cmake)
-###############################################################
-find_package(Gadgetron REQUIRED)
-
-set(CMAKE_INSTALL_PREFIX ${GADGETRON_HOME})
-LINK_DIRECTORIES(${GADGETRON_LIB_DIR})
-
-# We actually only use system and thread explicitly, but they require linking in date_time and chrono
-if (WIN32)
-  find_package(Boost COMPONENTS system thread date_time chrono program_options filesystem REQUIRED)
-else(WIN32)
-  find_package(Boost COMPONENTS system thread program_options filesystem REQUIRED)
-endif(WIN32)
-
-find_package(ACE REQUIRED)
-if(NOT ACE_FOUND)
-  MESSAGE("ACE not found. Only toolboxes and standalone applications are compiled. The streaming framework will NOT be compiled.")
-endif(NOT ACE_FOUND)
-
-#find_package(HDF5 REQUIRED)
-#if (HDF5_FOUND)
-#    message("HDF5 Found")
-#else()
-#    message("HDF5 not found")
-#endif()
-
-find_package(FFTW3 COMPONENTS single double)
-if (FFTW3_FOUND)
-    message("FFTW3 Found")
-else()
-    message("FFTW3 not found")
-endif()
-
-find_package(ISMRMRD REQUIRED)
-if (ISMRMRD_FOUND)
-    message("ISMRMRD Found")
-else()
-    message("ISMRMRD not found")
-endif()
-
-find_package(MKL)
-
-message("Searching for OpenGL, GLEW, GLUT, and Qt. These libraries are only used in a single standalone application and are thus non-essential.")
-if(WIN32)
-  message("For Windows users in particular, for ease of installation we do not reccomend installing these libraries.")
-endif(WIN32)
-
-find_package(Armadillo 4.600 REQUIRED)
-# check whether ILP64 MKL should is used
-if(ARMADILLO_FOUND)
-  set(ARMADILLO_BLAS_LONG_LONG FALSE)
-  if(EXISTS "${ARMADILLO_INCLUDE_DIR}/armadillo_bits/config.hpp")
-    # Read and parse armadillo config.hpp to find out whether BLAS uses long long
-    file(STRINGS "${ARMADILLO_INCLUDE_DIR}/armadillo_bits/config.hpp" _armadillo_blas_long_long REGEX "// #define ARMA_BLAS_LONG_LONG")
-    if ( NOT _armadillo_blas_long_long )
-      set(ARMADILLO_BLAS_LONG_LONG TRUE)
-      message("Armadillo is found to use long long for BLAS calls")
-    else ()
-      message("Armadillo found. Note that ARMADILLO_BLAS_LONG_LONG _must_ be defined in ${ARMADILLO_INCLUDE_DIR}/armadillo_bits/config.hpp to link against the MKL ILP64 interface.")
-    endif ()
-    unset(_armadillo_blas_long_long)
-  endif()
-
-endif()
 
 IF (WIN32)
     set(CMAKE_DEBUG_SUFFIX d CACHE STRING "the debug suffix")

@@ -3,11 +3,11 @@
 #include <iomanip>
 #include <sstream>
 
-#include "hoNDArray_reductions.h"
-#include "mri_core_def.h"
-#include "hoNDArray_utils.h"
-#include "hoNDArray_elemwise.h"
-#include "mri_core_utility.h"
+#include <gadgetron/hoNDArray_reductions.h>
+#include <gadgetron/mri_core_def.h>
+#include <gadgetron/hoNDArray_utils.h>
+#include <gadgetron/hoNDArray_elemwise.h>
+#include <gadgetron/mri_core_utility.h>
 // #include "cmr_t1_mapping.h"
 #include "cmr_sasha_t1_t2_mapping.h"
 

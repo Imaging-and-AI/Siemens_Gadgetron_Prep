@@ -1,6 +1,6 @@
 
 #include "GtImageMoCoAveGadget.h"
-#include "mri_core_utility.h"
+#include <gadgetron/mri_core_utility.h>
 
 namespace Gadgetron { 
 
@@ -386,7 +386,7 @@ namespace Gadgetron {
         std::vector<std::string> processStr;
         std::vector<std::string> dataRole;
 
-        std::vector<size_t> dims = ori.get_dimensions();
+        std::vector<size_t> dims = ori.dimensions();
         GDEBUG_CONDITION_STREAM(this->verbose.value(), "[Cha Slice Con Phase Rep Set Ave] = [" << dims[0] << " " << dims[1] << " " << dims[2] << " "
             << dims[3] << " " << dims[4] << " " << dims[5] << " "
             << dims[6] << "]");

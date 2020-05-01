@@ -3,17 +3,17 @@
     \author Hui Xue
 */
 
-#include "gadgetron_siemens_toolbox_cmr_export.h"
+
 #include "cmr_sasha_t1_t2_mapping.h"
-#include "log.h"
+#include <gadgetron/log.h>
 
-#include "hoNDArray_reductions.h"
-#include "hoNDArray_elemwise.h"
-#include "hoNDArray_math.h"
+#include <gadgetron/hoNDArray_reductions.h>
+#include <gadgetron/hoNDArray_elemwise.h>
+#include <gadgetron/hoNDArray_math.h>
 
-#include "simplexLagariaSolver.h"
+#include <gadgetron/simplexLagariaSolver.h>
 #include "jointSashaT1T2RecoveryOperator.h"
-#include "curveFittingCostFunction.h"
+#include <gadgetron/curveFittingCostFunction.h>
 
 #include <boost/math/special_functions/sign.hpp>
 
@@ -192,6 +192,6 @@ size_t CmrSashaT1T2Mapping<T>::get_num_of_paras() const
 // Instantiation
 // ------------------------------------------------------------
 
-template class EXPORTGTTOOLBOXCMR CmrSashaT1T2Mapping< float >;
+template class CmrSashaT1T2Mapping< float >;
 
 }

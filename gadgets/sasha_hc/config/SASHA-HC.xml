@@ -31,8 +31,15 @@
     </gadget>
 
     <gadget>
-        <name>BucketToBufferHC</name>
-        <dll>gadgetron_sasha_hc</dll>
+        <name>DuplicateRef</name>
+        <dll>gadgetron_siemens_sasha_hc</dll>
+        <classname>DuplicateReferenceDataGadget</classname>
+        <property><name>encoding_space</name><value>1</value></property>
+    </gadget>
+
+    <gadget>
+        <name>BucketToBuffer</name>
+        <dll>gadgetron_mricore</dll>
         <classname>BucketToBufferHCGadget</classname>
         <property><name>N_dimension</name><value>set</value></property>
         <property><name>S_dimension</name><value>contrast</value></property>

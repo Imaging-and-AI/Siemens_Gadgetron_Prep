@@ -119,7 +119,6 @@
         <property><name>coil_map_algorithm</name><value>Inati</value></property>
 
         <!-- Down stream coil compression -->
-        <property><name>same_coil_compression_coeff_allS</name><value>true</value></property>
         <property><name>downstream_coil_compression</name><value>true</value></property>
         <property><name>downstream_coil_compression_thres</name><value>-1</value></property>
         <property><name>downstream_coil_compression_num_modesKept</name><value>12</value></property>

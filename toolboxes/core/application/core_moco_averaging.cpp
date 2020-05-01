@@ -7,7 +7,7 @@
 */
 
 #include "core_moco_averaging.h"
-#include "hoImageRegContainer2DRegistration.h"
+#include <gadgetron/hoImageRegContainer2DRegistration.h>
 
 namespace Gadgetron { 
 
@@ -998,6 +998,6 @@ namespace Gadgetron {
     // Instantiation
     // ------------------------------------------------------------
 
-    template class EXPORTGTTOOLBOXCORE GtMoCoAveraging< float, double, 2 >;
-    template class EXPORTGTTOOLBOXCORE GtMoCoAveraging< float, double, 3 >;
+    template class GtMoCoAveraging< float, double, 2 >;
+    template class GtMoCoAveraging< float, double, 3 >;
 }

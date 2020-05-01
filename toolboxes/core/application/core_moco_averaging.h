@@ -8,16 +8,16 @@
 
 #pragma once
 
-#include "gadgetron_siemens_toolbox_core_export.h"
-#include "hoImageRegContainer2DRegistration.h"
-#include "mri_core_def.h"
-#include "ImageIOAnalyze.h"
-#include "GadgetronTimer.h"
+
+#include <gadgetron/hoImageRegContainer2DRegistration.h>
+#include <gadgetron/mri_core_def.h>
+#include <gadgetron/ImageIOAnalyze.h>
+#include <gadgetron/GadgetronTimer.h>
 
 namespace Gadgetron 
 { 
     template<typename ValueType, typename CoordType, unsigned int D> 
-    class EXPORTGTTOOLBOXCORE GtMoCoAveraging
+    class GtMoCoAveraging
     {
     public:
 

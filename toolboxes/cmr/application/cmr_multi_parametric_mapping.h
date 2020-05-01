@@ -8,12 +8,11 @@
 
 #pragma once
 
-#include "gadgetron_siemens_toolbox_cmr_export.h"
-#include "cmr_parametric_mapping.h"
+#include <gadgetron/cmr_parametric_mapping.h>
 
 namespace Gadgetron { 
     template <typename T>
-    class EXPORTGTTOOLBOXCMR CmrMultiParametricMapping : public CmrParametricMapping<T>
+    class CmrMultiParametricMapping : public CmrParametricMapping<T>
     {
     public:
         typedef CmrParametricMapping<T> BaseClass;

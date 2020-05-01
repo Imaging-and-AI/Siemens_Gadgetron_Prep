@@ -34,10 +34,18 @@
         <property><name>sorting_dimension</name><value></value></property>
     </gadget>
 
+
     <gadget>
-        <name>BucketToBufferHC</name>
-        <dll>gadgetron_sasha_hc</dll>
-        <classname>BucketToBufferHCGadget</classname>
+        <name>DuplicateReferenceDataGadget</name>
+        <dll>gadgetron_siemens_sasha_hc</dll>
+        <classname>DuplicateReferenceDataGadget</classname>
+        <property><name>encoding_space</name><value>1</value></property>
+    </gadget>
+
+    <gadget>
+        <name>BucketToBuffer</name>
+        <dll>gadgetron_mricore</dll>
+        <classname>BucketToBufferGadget</classname>
         <property><name>N_dimension</name><value>set</value></property>
         <property><name>S_dimension</name><value>contrast</value></property>
         <property><name>split_slices</name><value>false</value></property>

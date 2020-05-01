@@ -2,9 +2,9 @@
 #pragma once
 
 #include "sashahclib_export.h"
-#include "GenericReconBase.h"
-#include "hoNDArray_utils.h"
-#include "hoNDArray_elemwise.h"
+#include <gadgetron/GenericReconBase.h>
+#include <gadgetron/hoNDArray_utils.h>
+#include <gadgetron/hoNDArray_elemwise.h>
 
 namespace Gadgetron {
 
