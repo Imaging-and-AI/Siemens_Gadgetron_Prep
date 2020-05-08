@@ -84,28 +84,28 @@ int FlagSashaHCGadget::process(
         iLastLine = (int16_t)acqhdr.idx.kspace_encode_step_1;
     }
 
-    if (acqhdr.idx.contrast)
-    {
-        GDEBUG_STREAM( "  set: "         <<                   (int16_t)acqhdr.idx.set
-                    << " con: "         <<                   (int16_t)acqhdr.idx.contrast
-                    << " e1: "          << std::setw( 3 ) << (int16_t)acqhdr.idx.kspace_encode_step_1
-                    << " iLastLine: "   << std::setw( 3 ) << iLastLine
-                    << " ts: "          << std::setw( 5 ) << (int16_t)acqhdr.user_int[4]
-                    << " rfTime: "      << std::setw( 8 ) << (int32_t)acqhdr.user_int[7]
-                    << " acquisition_time_stamp: "  <<       (uint32_t)acqhdr.acquisition_time_stamp
-                    << " ref: "         <<                          ( acqhdr.isFlagSet(ISMRMRD::ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION) || acqhdr.isFlagSet(ISMRMRD::ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING) )
-                    << " *"); 
-    }
-    else {
-        GDEBUG_STREAM( " set: "         <<                   (int16_t)acqhdr.idx.set
-                    << " con: "         <<                   (int16_t)acqhdr.idx.contrast
-                    << " e1: "          << std::setw( 3 ) << (int16_t)acqhdr.idx.kspace_encode_step_1
-                    << " iLastLine: "   << std::setw( 3 ) << iLastLine
-                    << " ts: "          << std::setw( 5 ) << (int16_t)acqhdr.user_int[4]
-                    << " rfTime: "      << std::setw( 8 ) << (int32_t)acqhdr.user_int[7]
-                    << " acquisition_time_stamp: "  <<       (uint32_t)acqhdr.acquisition_time_stamp
-                    << " ref: "         <<                          ( acqhdr.isFlagSet(ISMRMRD::ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION) || acqhdr.isFlagSet(ISMRMRD::ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING) ) ); 
-    }
+//    if (acqhdr.idx.contrast)
+//    {
+//        GDEBUG_STREAM( "  set: "         <<                   (int16_t)acqhdr.idx.set
+//                    << " con: "         <<                   (int16_t)acqhdr.idx.contrast
+//                    << " e1: "          << std::setw( 3 ) << (int16_t)acqhdr.idx.kspace_encode_step_1
+//                    << " iLastLine: "   << std::setw( 3 ) << iLastLine
+//                    << " ts: "          << std::setw( 5 ) << (int16_t)acqhdr.user_int[4]
+//                    << " rfTime: "      << std::setw( 8 ) << (int32_t)acqhdr.user_int[7]
+//                    << " acquisition_time_stamp: "  <<       (uint32_t)acqhdr.acquisition_time_stamp
+//                    << " ref: "         <<                          ( acqhdr.isFlagSet(ISMRMRD::ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION) || acqhdr.isFlagSet(ISMRMRD::ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING) )
+//                    << " *");
+//    }
+//    else {
+//        GDEBUG_STREAM( " set: "         <<                   (int16_t)acqhdr.idx.set
+//                    << " con: "         <<                   (int16_t)acqhdr.idx.contrast
+//                    << " e1: "          << std::setw( 3 ) << (int16_t)acqhdr.idx.kspace_encode_step_1
+//                    << " iLastLine: "   << std::setw( 3 ) << iLastLine
+//                    << " ts: "          << std::setw( 5 ) << (int16_t)acqhdr.user_int[4]
+//                    << " rfTime: "      << std::setw( 8 ) << (int32_t)acqhdr.user_int[7]
+//                    << " acquisition_time_stamp: "  <<       (uint32_t)acqhdr.acquisition_time_stamp
+//                    << " ref: "         <<                          ( acqhdr.isFlagSet(ISMRMRD::ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION) || acqhdr.isFlagSet(ISMRMRD::ISMRMRD_ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING) ) );
+//    }
 
     // 2016-10-04 Kelvin: Discard navigator lines
     if (acqhdr.isFlagSet( ISMRMRD::ISMRMRD_ACQ_IS_RTFEEDBACK_DATA ))

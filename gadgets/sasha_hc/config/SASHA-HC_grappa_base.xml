@@ -9,15 +9,16 @@
 
     <!-- reader -->
     <reader><slot>1008</slot><dll>gadgetron_mricore</dll><classname>GadgetIsmrmrdAcquisitionMessageReader</classname></reader>
+    <reader><slot>1026</slot><dll>gadgetron_mricore</dll><classname>GadgetIsmrmrdWaveformMessageReader</classname></reader>
 
     <!-- writer -->
     <writer><slot>1022</slot><dll>gadgetron_mricore</dll><classname>MRIImageWriter</classname></writer>
 
-    <!-- Noise prewhitening -->
-    <gadget><name>NoiseAdjust</name><dll>gadgetron_mricore</dll><classname>NoiseAdjustGadget</classname></gadget>
-
     <!-- Flag SASHA-HC lines -->
     <gadget><name>FlagSashaHC</name><dll>gadgetron_siemens_sasha_hc</dll><classname>FlagSashaHCGadget</classname></gadget>
+
+    <!-- Noise prewhitening -->
+    <gadget><name>NoiseAdjust</name><dll>gadgetron_mricore</dll><classname>NoiseAdjustGadget</classname></gadget>
 
     <!-- RO asymmetric echo handling -->
     <gadget><name>AsymmetricEcho</name><dll>gadgetron_mricore</dll><classname>AsymmetricEchoAdjustROGadget</classname></gadget>
@@ -30,10 +31,9 @@
         <name>AccTrig</name>
         <dll>gadgetron_mricore</dll>
         <classname>AcquisitionAccumulateTriggerGadget</classname>
-        <property><name>trigger_dimension</name><value></value></property>
+        <property><name>trigger_dimension</name><value>slice</value></property>
         <property><name>sorting_dimension</name><value></value></property>
     </gadget>
-
 
     <gadget>
         <name>DuplicateReferenceDataGadget</name>
@@ -52,7 +52,6 @@
         <property><name>ignore_segment</name><value>true</value></property>
         <property><name>verbose</name><value>true</value></property>
     </gadget>
-
     <!-- Prep ref -->
     <gadget>
         <name>PrepRef</name>
@@ -81,7 +80,7 @@
         <!-- parameters for debug and timing -->
         <property><name>debug_folder</name><value></value></property>
         <property><name>perform_timing</name><value>true</value></property>
-        <property><name>verbose</name><value>true</value></property>
+        <property><name>verbose</name><value>false</value></property>
 
         <property><name>average_all_ref_N</name><value>true</value></property>
         <property><name>average_all_ref_S</name><value>true</value></property>
@@ -123,7 +122,7 @@
     <gadget>
         <name>PartialFourierHandling</name>
         <dll>gadgetron_mricore</dll>
-        <classname>GenericReconPartialFourierHandlingFilterGadget</classname>
+        <classname>GenericReconPartialFourierHandlingPOCSGadget</classname>
 
         <!-- parameters for debug and timing -->
         <property><name>debug_folder</name><value></value></property>
@@ -133,11 +132,10 @@
         <!-- if incoming images have this meta field, it will not be processed -->
         <property><name>skip_processing_meta_field</name><value>Skip_processing_after_recon</value></property>
 
-        <!-- Parfial fourier handling filter parameters -->
-        <property><name>partial_fourier_filter_RO_width</name><value>0.15</value></property>
-        <property><name>partial_fourier_filter_E1_width</name><value>0.15</value></property>
-        <property><name>partial_fourier_filter_E2_width</name><value>0.15</value></property>
-        <property><name>partial_fourier_filter_densityComp</name><value>false</value></property>
+        <property><name>partial_fourier_POCS_iters</name><value>6</value></property>
+        <property><name>partial_fourier_POCS_thres</name><value>0.01</value></property>
+        <property><name>partial_fourier_POCS_transitBand</name><value>24</value></property>
+        <property><name>partial_fourier_POCS_transitBand_E2</name><value>16</value></property>
     </gadget>
 
     <!-- Kspace filtering -->
@@ -156,15 +154,15 @@
 
         <!-- parameters for kspace filtering -->
         <property><name>filterRO</name><value>Gaussian</value></property>
-        <property><name>filterRO_sigma</name><value>1.0</value></property>
+        <property><name>filterRO_sigma</name><value>1.5</value></property>
         <property><name>filterRO_width</name><value>0.15</value></property>
 
         <property><name>filterE1</name><value>Gaussian</value></property>
-        <property><name>filterE1_sigma</name><value>1.0</value></property>
+        <property><name>filterE1_sigma</name><value>1.5</value></property>
         <property><name>filterE1_width</name><value>0.15</value></property>
 
         <property><name>filterE2</name><value>Gaussian</value></property>
-        <property><name>filterE2_sigma</name><value>1.0</value></property>
+        <property><name>filterE2_sigma</name><value>1.5</value></property>
         <property><name>filterE2_width</name><value>0.15</value></property>
     </gadget>
 
@@ -198,6 +196,14 @@
         <property><name>scalingFactor_dedicated</name><value>100.0</value></property>
     </gadget>
 
+    <!-- MultiRep -->
+    <gadget>
+        <name>MultiRep</name>
+        <dll>gadgetron_siemens_sasha_hc</dll>
+        <classname>SashaHCMultiRepGadget</classname>
+    </gadget>
+
+
     <!-- ImageArray to images -->
     <gadget>
         <name>ImageArraySplit</name>
@@ -212,15 +218,7 @@
         <classname>ComplexToFloatGadget</classname>
     </gadget>
 
-    <gadget>
-        <name>FloatToShortAttrib</name>
-        <dll>gadgetron_mricore</dll>
-        <classname>FloatToUShortGadget</classname>
 
-        <property><name>max_intensity</name><value>32767</value></property>
-        <property><name>min_intensity</name><value>0</value></property>
-        <property><name>intensity_offset</name><value>0</value></property>
-    </gadget>
 
     <gadget>
         <name>ImageFinish</name>

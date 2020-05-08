@@ -12,11 +12,18 @@ if(WIN32)
     link_directories(${Boost_LIBRARY_DIRS})
 endif(WIN32)
 
+set(python_files
+        MocoAntsHC.py
+        )
+
 set( config_files
     config/SASHA-HC.xml 
     config/SASHA-HC_grappa.xml 
-    config/SASHA-HC_grappa_moco.xml 
-    config/SASHA-HC_grappa_moco_debug.xml 
+    config/SASHA-HC_grappa_moco.xml
+    config/SASHA-HC_grappa_nomoco.xml
+    config/SASHA-HC_grappa_base.xml
+    config/SASHA-HC_grappa_ants.xml
+    config/SASHA-HC_grappa_moco_debug.xml
     config/SASHA-HC_grappa_moco_istore.xml
     config/SASHA-HC_grappa_moco_dstore.xml
     )
@@ -65,7 +72,6 @@ target_link_libraries(gadgetron_siemens_sasha_hc
     Gadgetron::gadgetron_toolbox_cpucore_math
     Gadgetron::gadgetron_toolbox_cpufft
     Gadgetron::gadgetron_toolbox_cpuklt
-    #Gadgetron::gadgetron_toolbox_cloudbus
     Gadgetron::gadgetron_toolbox_log
     Gadgetron::gadgetron_toolbox_mri_core
     Gadgetron::gadgetron_toolbox_cpudwt
@@ -79,5 +85,8 @@ install (FILES  ${config_files}
 
 install (FILES  ${config_schema_files}
                 DESTINATION ${GADGETRON_INSTALL_SCHEMA_PATH})
+
+install(FILES ${python_files}
+                DESTINATION ${GADGETRON_INSTALL_PYTHON_MODULE_PATH})
 
 install(TARGETS gadgetron_siemens_sasha_hc DESTINATION lib)

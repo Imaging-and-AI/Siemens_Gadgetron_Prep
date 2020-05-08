@@ -69,7 +69,9 @@ RUN cd /opt/code/Siemens_Gadgetron_Prep && \
     make -j 16 && \
     git rev-parse HEAD >> /opt/code/Siemens_Gadgetron_Prep_sha1.txt && \
     /opt/code/gadgetron/docker/manifest --key .io.gadgetron.Siemens_Gadgetron_Prep.sha1 --value `git rev-parse HEAD` && \
-    make install 
+    make install
+
+RUN pip3 install multiprocessing_on_dill dill antsxpy
 
 #Copy test case file
 RUN cp -f /opt/code/Siemens_Gadgetron_Prep/test/integration/test_cases.txt /opt/code/test_cases.txt
