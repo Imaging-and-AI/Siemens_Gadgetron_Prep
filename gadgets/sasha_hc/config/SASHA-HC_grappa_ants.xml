@@ -429,9 +429,7 @@
         </external>
         <!-- T1 SASHA mapping -->
         <gadget>
-            <!-- <name>SASHA</name>
-        <dll>gadgetron_cmr</dll>
-        <classname>CmrParametricT1SRMappingGadget</classname> -->
+
             <name>SASHA</name>
             <dll>gadgetron_siemens_sasha_hc</dll>
             <classname>CmrParametricSashaT1T2MappingGadget</classname>

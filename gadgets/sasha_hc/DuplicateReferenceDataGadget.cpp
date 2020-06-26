@@ -30,7 +30,7 @@ Gadgetron::AcquisitionBucket Gadgetron::DuplicateReferenceDataGadget::process_fu
 }
 Gadgetron::DuplicateReferenceDataGadget::DuplicateReferenceDataGadget(
     const Core::Context& context, const Core::GadgetProperties& props)
-    : Core::PureGadget<AcquisitionBucket,AcquisitionBucket>(props) { }
+    : Core::PureGadget<AcquisitionBucket,AcquisitionBucket>(context,props) { }
 
 namespace Gadgetron {
     GADGETRON_GADGET_EXPORT(DuplicateReferenceDataGadget)
