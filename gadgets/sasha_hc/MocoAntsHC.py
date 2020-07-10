@@ -1,5 +1,5 @@
 import os
-os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
+# os.environ['ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS'] = '1'
 import gadgetron
 import ants
 import numpy as np 
@@ -33,14 +33,14 @@ def perform_ants_registration(registration_pairs):
     args = ['-d', '2',
             '-w', '[0.01,0.99]',
             '-u', '1',
-            '-t', 'BSplineSyn[0.10,4x4,0x0,1]']
+            '-t', 'BSplineSyn[0.15,4x4,0x0,1]']
 
     for (fixed_ants, moving_ants, metric, weight1, weight2) in registration_pairs:
         f = ants.utils.get_pointer_string(fixed_ants)
         m = ants.utils.get_pointer_string(moving_ants)
         args.extend(['-m', '%s[%s,%s,%f,%d]' % (metric, f, m, weight1, weight2)])
 
-    args.extend(['-c', '[50x50x50,1e-9,10]'])
+    args.extend(['-c', '[25x25x25,1e-3,5]'])
     args.extend(['-f', '4x2x1'])
     args.extend(['-s', '1x0.5x0'])
     # args.extend(['-v','1'])
