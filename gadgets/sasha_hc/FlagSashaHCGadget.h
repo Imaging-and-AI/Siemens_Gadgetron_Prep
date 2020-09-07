@@ -21,6 +21,8 @@ namespace Gadgetron
 
         FlagSashaHCGadget();
 
+        GADGET_PROPERTY(verbose, bool, "verbose mode", false);
+
     protected:
         virtual int process( GadgetContainerMessage< ISMRMRD::AcquisitionHeader>* m1,
             GadgetContainerMessage< hoNDArray< std::complex<float> > >* m2 );

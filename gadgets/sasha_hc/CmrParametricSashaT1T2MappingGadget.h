@@ -58,6 +58,8 @@ namespace Gadgetron {
         float              time_t2p_to_center_kspace_;
         float              t2p_rf_duration_;
 
+        size_t             num_rep_;
+
         // --------------------------------------------------
         // functional functions
         // --------------------------------------------------

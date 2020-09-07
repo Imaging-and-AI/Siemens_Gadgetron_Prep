@@ -10,6 +10,8 @@ from scipy.ndimage import laplace
 import glob
 import time
 import re
+import shutil
+import copy
 
 from tempfile import TemporaryDirectory, mkdtemp
 
@@ -26,9 +28,14 @@ def apply_transform(image,transform):
     return output
 
 
-def perform_ants_registration(registration_pairs):
-    outprefix = mkdtemp() + "/"
-    
+def perform_ants_registration(registration_pairs, params):
+    if "tempdir" in params:
+        if not os.path.exists(params["tempdir"]):
+            os.makedirs(params["tempdir"])
+            print("Created temp folder ", params["tempdir"])
+        outprefix = mkdtemp(dir = params["tempdir"]) + "/"
+    else:
+        outprefix = mkdtemp() + "/"
 
     args = ['-d', '2',
             '-w', '[0.01,0.99]',
@@ -86,7 +93,7 @@ def perform_ants_registration(registration_pairs):
         "invtransforms": invtransforms,
     }
 
-def register_images(fixed_image, moving_image):
+def register_images(fixed_image, moving_image, params):
     registration_terms = []
 
     fixed_lc = ants.from_numpy(fixed_image[0])
@@ -108,7 +115,7 @@ def register_images(fixed_image, moving_image):
 
     registration_terms.append((fixed_lc, moving_lc, "MI2", 0.3, 32))
 
-    mytx = perform_ants_registration(registration_terms)
+    mytx = perform_ants_registration(registration_terms, params)
 
     return mytx['fwdtransforms']
 
@@ -133,7 +140,7 @@ def user_param_to_dict(user_params):
     return {k.name: k.value_ for k in user_params}
 
 
-def register_data(data):
+def register_data(data, params):
     data = np.array(data.T, order='C')
     data = np.transpose(data, [0, 2, 3, 4, 1, 5, 6])
 
@@ -147,16 +154,26 @@ def register_data(data):
     img_base = adata[0]
 
     def register_single_set(n):
-        transform = register_images(img_base, adata[n])
+        transform = register_images(img_base, adata[n], params)
         print(transform)
         return transform
 
+    do_multiprocessing = True
 
+    if "multiprocessing" in params:
+        if params["multiprocessing"] == "false":
+            do_multiprocessing = False
 
-    pool = multiprocessing.Pool()
-    #
-    result = pool.map(register_single_set, range(data.shape[0]))
-    #result = [register_single_set(n) for n in range(data.shape[0])]
+    if do_multiprocessing:
+        print("Doing registration with multiprocessing with ", multiprocessing.cpu_count())
+        pool = multiprocessing.Pool()
+        result = pool.map(register_single_set, range(data.shape[0]))
+    else:
+        print("Doing registration without multiprocessing")
+        result = [register_single_set(n) for n in range(data.shape[0])]
+
+    # import nibabel as nib
+    # img = nib.load('/private/tmp/share/moco/tmp9v1ql9wr/0Warp.nii.gz')
 
     deformed_data = np.stack([ apply_transform(image,transform) for image,transform in zip(data,result)])
     deformed_data = np.reshape(deformed_data, new_shape)
@@ -203,7 +220,7 @@ def sort_by_ending(values):
 def read_user_times(header, prefix, initial_value):
     params = user_param_to_dict(header.userParameters.userParameterDouble)
     max_set = header.encoding[0].encodingLimits.set_.maximum
-    max_rep = header.encoding[0].encodingLimits.repetition.maximum
+    max_rep = (header.encoding[0].encodingLimits.repetition.maximum+1) * (header.encoding[0].encodingLimits.average.maximum+1) - 1
     keys = sort_by_ending(filter(lambda s: s.startswith(prefix), params.keys()))
     user_times = [params[k] for k in keys]
     user_times = [initial_value] + user_times
@@ -226,6 +243,8 @@ def calculate_groups(ismrmrd_header,acq_headers):
     t2_prep_duration = read_user_times(ismrmrd_header, 'T2PrepDuration', 0).ravel(order='F')
 
     saturation_recovery_time = correct_sat(acq_headers, saturation_recovery_time)
+    print("TS is : ", saturation_recovery_time)
+    print("T2p is: ", t2_prep_duration)
 
     group2 = np.logical_and(saturation_recovery_time == np.min(saturation_recovery_time), t2_prep_duration == 0)
     group3 = t2_prep_duration > 0
@@ -240,19 +259,19 @@ def correct_sat(headers, sat):
     sat[corrections > 0] = corrections[corrections > 0]
     return sat
 
-def group_registration(data,groups):
+def group_registration(data,groups,params):
     start = time.time()
 
     transforms = []
     deformed = []
     for g in groups:
-        transform, tmp = register_data(data[:,:,:,:,g,...])
+        transform, tmp = register_data(data[:,:,:,:,g,...], params)
         deformed.append(tmp)
         transforms.append(transform)
 
 
     mean_images = np.stack([np.mean(group_data,axis=4) for group_data in deformed] ,axis=4)
-    mean_transform, deformed_mean = register_data(mean_images)
+    mean_transform, deformed_mean = register_data(mean_images, params)
 
     deformed_data = np.zeros_like(data)
     for g,transform_list,mt in zip(groups,transforms,mean_transform):
@@ -261,15 +280,69 @@ def group_registration(data,groups):
         deformed_group = transform_data(group_data,fixed_transforms)
         deformed_data[:,:,:,:,g,...] = deformed_group
 
+    # Clean up temp files
+    for file in mean_transform:
+        shutil.rmtree(os.path.dirname(file[0]))
+    for transform_group in transforms:
+        for file in transform_group:
+            shutil.rmtree(os.path.dirname(file[0]))
 
     print("Time to register was ", time.time() - start)
     return deformed_data
 
+def _parse_params(xml):
+    return {p.get('name'): p.get('value') for p in xml.iter('property')}
+
 def registration(connection):
+    params = _parse_params(connection.config)
+
     for image in connection:
-        image_copy = image
-        print("Imge shape",image.data.shape)
+        print("Image shape",image.data.shape)
+
+        # Set TS/T2p times in image comment
+        TS  = read_user_times(connection.header, 'SatRecTime_',    0).ravel(order='F')
+        T2p = read_user_times(connection.header, 'T2PrepDuration', 0).ravel(order='F')
+        TS = correct_sat(image.headers, TS)
+        for i in range(len(TS)):
+            image.meta[i        ] = set_metadata(image.meta[i        ], 'GADGETRON_ImageComment', ["TS=%1d, T2p=%1d" % (TS[i], T2p[i])])
+            image.meta[i+len(TS)] = set_metadata(image.meta[i+len(TS)], 'GADGETRON_ImageComment', ["TS=%1d, T2p=%1d" % (TS[i], T2p[i])])
+
+        # Normal images are first half, HC images are second half
+        image.meta[:len(image.meta)//2] = [set_metadata(meta, 'GADGETRON_DataRole',     ['SASHA'   ]) for meta in image.meta[:len(image.meta)//2]]
+        image.meta[len(image.meta)//2:] = [set_metadata(meta, 'GADGETRON_DataRole',     ['SASHA_HC']) for meta in image.meta[len(image.meta)//2:]]
+
+        if "sendorig" in params:
+            # Send original images, with no additional processing
+            print("Sending original images")
+            image_orig = copy.deepcopy(image)
+
+            image_orig.meta[:] = [set_metadata(meta, 'Skip_processing_after_recon', ['true']) for meta in image_orig.meta]
+
+            connection.send(image_orig)
+
+        # Perform motion correction
         groups = calculate_groups(connection.header, image.headers)
-        image_copy.data = group_registration(image_copy.data,groups)
-        image_copy = remove_second_channel(image_copy)
-        connection.send(image_copy)
+        image.data = group_registration(image.data,groups, params)
+        image = remove_second_channel(image)
+
+        image.meta[:] = [set_metadata(meta, 'GADGETRON_DataRole',               ['MOCO']) for meta in image.meta]
+        image.meta[:] = [set_metadata(meta, 'GADGETRON_SeqDescription',         ['MOCO']) for meta in image.meta]
+        image.meta[:] = [set_metadata(meta, 'GADGETRON_ImageComment',           ['MOCO']) for meta in image.meta]
+        image.meta[:] = [set_metadata(meta, 'GADGETRON_ImageProcessingHistory', ['MOCO']) for meta in image.meta]
+
+        # Change series index for moco images
+        for i in range(image.headers.shape[0]):
+            image.headers[i,0,0].image_series_index = 10
+
+        connection.send(image)
+
+def set_metadata(metadata, name, value):
+    root = ET.fromstring(metadata)
+    metanode = ET.SubElement(root,'meta')
+    elementname = ET.SubElement(metanode,'name')
+    elementname.text = name
+    for i in range(len(value)):
+        elementvalue = ET.SubElement(metanode,'value')
+        elementvalue.text = value[i]
+
+    return ET.tostring(root,encoding='ascii').decode("utf-8")
