@@ -432,9 +432,9 @@
         <external>
             <execute name="MocoAntsHC" target="registration" type="python" />
             <configuration>
-                <!-- Note the entire tempdir will be deleted after each run! -->
-                <property name="tempdir" value="/tmp/share/moco"/>
-                <property name="multiprocessing" value="false"/>
+                <property name="tempdir"         value="/tmp/share/moco"/>
+                <property name="multiprocessing" value="true"/>
+                <property name="sendorig"        value="true"/>
             </configuration>
         </external>
 
@@ -586,7 +586,6 @@
             <dll>gadgetron_mricore</dll>
             <classname>ImageArraySplitGadget</classname>
         </gadget>
-
         <gadget>
             <name>ComplexToFloatAttrib</name>
             <dll>gadgetron_mricore</dll>
