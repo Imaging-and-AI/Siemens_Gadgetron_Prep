@@ -1,4 +1,4 @@
-FROM gadgetron/ubuntu_2004
+FROM ghcr.io/gadgetron/gadgetron/gadgetron_ubuntu_2004:latest
 
 RUN  mkdir -p /opt/code
 
