@@ -43,14 +43,22 @@ namespace Gadgetron {
         }
 
         GDEBUG_STREAM("meas_max_idx_.repetition is " << meas_max_idx_.repetition);
+        GDEBUG_STREAM("meas_max_idx_.average is " << meas_max_idx_.average);
         GDEBUG_STREAM("meas_max_idx_.set is " << meas_max_idx_.set);
         num_encoding_spaces_ = 1;//h.encoding.size();
+
+        num_rep_ = meas_max_idx_.repetition + 1;
+        if(num_rep_==1 && meas_max_idx_.average>=1)
+        {
+            num_rep_ = meas_max_idx_.average + 1;
+        }
+        GDEBUG_STREAM("num_rep_ is " << num_rep_);
 
         // Each image in the set must have a prep time
         // this->prep_times_ts_.resize( this->meas_max_idx_.set + 1);
         // this->prep_times_t2p_.resize(this->meas_max_idx_.set + 1);
-        this->prep_times_ts_.resize( (this->meas_max_idx_.set + 1) * (this->meas_max_idx_.repetition + 1));
-        this->prep_times_t2p_.resize((this->meas_max_idx_.set + 1) * (this->meas_max_idx_.repetition + 1));
+        this->prep_times_ts_.resize( (this->meas_max_idx_.set + 1) * (num_rep_));
+        this->prep_times_t2p_.resize((this->meas_max_idx_.set + 1) * (num_rep_));
 
         this->time_t2p_to_center_kspace_ = 0;
 
@@ -108,7 +116,7 @@ namespace Gadgetron {
                     if (usrParaName == strT1.str() && iT1 <= this->meas_max_idx_.set)
                     {
                         GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, found SR prep time : " << iT1 << " - " << usrParaValue);
-                        for (size_t i = 0; i <= meas_max_idx_.repetition; i++)
+                        for (size_t i = 0; i < num_rep_; i++)
                         {
                             size_t ind = iT1+i*(this->meas_max_idx_.set+1);
                             if (ind < this->prep_times_ts_.size())
@@ -121,7 +129,7 @@ namespace Gadgetron {
                     else if (usrParaName == strT2.str() && iT2 <= this->meas_max_idx_.set)
                     {
                         GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, found T2 prep time : " << iT2 << " - " << usrParaValue);
-                        for (size_t i = 0; i <= meas_max_idx_.repetition; i++)
+                        for (size_t i = 0; i < num_rep_; i++)
                         {
                             size_t ind = iT2+i*(this->meas_max_idx_.set+1);
                             if (ind < this->prep_times_t2p_.size())

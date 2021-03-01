@@ -23,6 +23,7 @@ set( config_files
     config/SASHA-HC_grappa_nomoco.xml
     config/SASHA-HC_grappa_base.xml
     config/SASHA-HC_grappa_ants.xml
+    config/SASHA-HC_ants.xml
     config/SASHA-HC_grappa_moco_debug.xml
     config/SASHA-HC_grappa_moco_istore.xml
     config/SASHA-HC_grappa_moco_dstore.xml
@@ -37,20 +38,24 @@ set( config_schema_files
 
 set( sasha_hc_header_files 
      sashahclib_export.h 
-     FlagSashaHCGadget.h
      CalcMolliTiGadget.h
-        ReconGrappaSashaHCGadget.h
-     SashaHCMultiRepGadget.h
+     CmrParametricSashaT1T2MappingGadget.h
+     DuplicateReferenceDataGadget.h
+     FlagSashaHCGadget.h
      MoCoSashaHCGadget.h
-     CmrParametricSashaT1T2MappingGadget.h )
+     ReconGrappaSashaHCGadget.h
+     SashaHCMultiAveGadget.h
+     SashaHCMultiRepGadget.h )
 
 set( sasha_hc_src_files 
-     FlagSashaHCGadget.cpp
-     CalcMolliTiGadget.cpp
-        ReconGrappaSashaHCGadget.cpp
-     SashaHCMultiRepGadget.cpp
-     MoCoSashaHCGadget.cpp
-     CmrParametricSashaT1T2MappingGadget.cpp DuplicateReferenceDataGadget.cpp DuplicateReferenceDataGadget.h)
+    CalcMolliTiGadget.cpp
+    CmrParametricSashaT1T2MappingGadget.cpp
+    DuplicateReferenceDataGadget.cpp
+    FlagSashaHCGadget.cpp
+    MoCoSashaHCGadget.cpp
+    ReconGrappaSashaHCGadget.cpp
+    SashaHCMultiAveGadget.cpp
+    SashaHCMultiRepGadget.cpp )
 
 source_group(config     FILES      ${config_files})
 source_group(schema     FILES      ${config_schema_files})
