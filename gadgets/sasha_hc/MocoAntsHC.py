@@ -130,7 +130,7 @@ def transform_data(data,transforms):
 
 
 def user_param_to_dict(user_params):
-    return {k.name: k.value_ for k in user_params}
+    return {k.name: k.value for k in user_params}
 
 
 def register_data(data):
@@ -148,7 +148,6 @@ def register_data(data):
 
     def register_single_set(n):
         transform = register_images(img_base, adata[n])
-        print(transform)
         return transform
 
 
@@ -164,13 +163,6 @@ def register_data(data):
     reshape_order.reverse()
     deformed_data = np.transpose(deformed_data, reshape_order)
     return result,deformed_data
-
-
-def user_param_to_dict(user_params):
-    return {k.name: k.value_ for k in user_params}
-
-
-
 
 def fix_metadata(metadata):
     root = ET.fromstring(metadata)
@@ -202,7 +194,7 @@ def sort_by_ending(values):
 
 def read_user_times(header, prefix, initial_value):
     params = user_param_to_dict(header.userParameters.userParameterDouble)
-    max_set = header.encoding[0].encodingLimits.set_.maximum
+    max_set = header.encoding[0].encodingLimits.set.maximum
     max_rep = header.encoding[0].encodingLimits.repetition.maximum
     keys = sort_by_ending(filter(lambda s: s.startswith(prefix), params.keys()))
     user_times = [params[k] for k in keys]
@@ -218,7 +210,7 @@ def calculate_groups(ismrmrd_header,acq_headers):
     time_t2p_to_center_kspace = params['TimeT2pToCenterKspace']
     t2p_rf_duration = params['T2pRfDuration']
 
-    max_set = ismrmrd_header.encoding[0].encodingLimits.set_.maximum
+    max_set = ismrmrd_header.encoding[0].encodingLimits.set.maximum
     max_rep = ismrmrd_header.encoding[0].encodingLimits.repetition.maximum
 
     saturation_recovery_time = read_user_times(ismrmrd_header, 'SatRecTime_', 0).ravel(order='F')
@@ -268,8 +260,8 @@ def group_registration(data,groups):
 def registration(connection):
     for image in connection:
         image_copy = image
-        print("Imge shape",image.data.shape)
         groups = calculate_groups(connection.header, image.headers)
         image_copy.data = group_registration(image_copy.data,groups)
         image_copy = remove_second_channel(image_copy)
         connection.send(image_copy)
+
