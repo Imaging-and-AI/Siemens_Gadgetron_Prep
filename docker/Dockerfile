@@ -59,4 +59,4 @@ RUN  rm -r /root/.cache/pip
 # Clean up code
 RUN rm -rf /opt/code/Siemens_Gadgetron_Prep
 
-CMD ["/usr/local/bin/gadgetron"]
+CMD ["/opt/start_supervisor"]
