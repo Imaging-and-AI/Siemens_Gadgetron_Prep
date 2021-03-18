@@ -6,20 +6,20 @@
 
 #include "core_phase_sensitive_recon.h"
 #include <limits>
-#include <gadgetron/hoNDFFT.h>
-#include <gadgetron/hoNDImage_util.h>
-#include <gadgetron/hoMatrix.h>
-#include <gadgetron/hoNDArray_linalg.h>
-#include <gadgetron/hoNDFFT.h>
-#include <gadgetron/hoNDKLT.h>
-#include <gadgetron/hoNDArray_utils.h>
-#include <gadgetron/hoNDArray_elemwise.h>
-#include <gadgetron/hoNDImage_util.h>
-#include <gadgetron/hoMRImage.h>
-#include <gadgetron/hoNDArray_reductions.h>
-#include <gadgetron/hoNDArray_linalg.h>
-#include <gadgetron/mri_core_kspace_filter.h>
-#include <gadgetron/mri_core_def.h>
+#include <hoNDFFT.h>
+#include <hoNDImage_util.h>
+#include <hoMatrix.h>
+#include <hoNDArray_linalg.h>
+#include <hoNDFFT.h>
+#include <hoNDKLT.h>
+#include <hoNDArray_utils.h>
+#include <hoNDArray_elemwise.h>
+#include <hoNDImage_util.h>
+#include <hoMRImage.h>
+#include <hoNDArray_reductions.h>
+#include <hoNDArray_linalg.h>
+#include <mri_core_kspace_filter.h>
+#include <mri_core_def.h>
 
 namespace Gadgetron { 
 

@@ -5,15 +5,15 @@
 
 
 #include "cmr_sasha_t1_t2_mapping.h"
-#include <gadgetron/log.h>
+#include <log.h>
 
-#include <gadgetron/hoNDArray_reductions.h>
-#include <gadgetron/hoNDArray_elemwise.h>
-#include <gadgetron/hoNDArray_math.h>
+#include <hoNDArray_reductions.h>
+#include <hoNDArray_elemwise.h>
+#include <hoNDArray_math.h>
 
-#include <gadgetron/simplexLagariaSolver.h>
+#include <simplexLagariaSolver.h>
 #include "jointSashaT1T2RecoveryOperator.h"
-#include <gadgetron/curveFittingCostFunction.h>
+#include <curveFittingCostFunction.h>
 
 #include <boost/math/special_functions/sign.hpp>
 

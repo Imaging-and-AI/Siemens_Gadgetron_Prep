@@ -8,7 +8,7 @@
 #pragma once
 
 
-#include <gadgetron/cmr_parametric_mapping.h>
+#include "cmr_parametric_mapping.h"
 #include "cmr_multi_parametric_mapping.h"
 #include "cmr_sasha_t1_t2_mapping.h"
 

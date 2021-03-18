@@ -1,5 +1,5 @@
 #include "ReconGrappaSashaHCGadget.h"
-#include <gadgetron/mri_core_grappa.h>
+#include <mri_core_grappa.h>
 
 namespace Gadgetron {
 

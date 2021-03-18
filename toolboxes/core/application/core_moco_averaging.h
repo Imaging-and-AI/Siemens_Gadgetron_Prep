@@ -9,10 +9,10 @@
 #pragma once
 
 
-#include <gadgetron/hoImageRegContainer2DRegistration.h>
-#include <gadgetron/mri_core_def.h>
-#include <gadgetron/ImageIOAnalyze.h>
-#include <gadgetron/GadgetronTimer.h>
+#include <hoImageRegContainer2DRegistration.h>
+#include <mri_core_def.h>
+#include <ImageIOAnalyze.h>
+#include <GadgetronTimer.h>
 
 namespace Gadgetron 
 { 

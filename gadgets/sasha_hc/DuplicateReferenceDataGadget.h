@@ -1,8 +1,8 @@
 //
 #pragma once
-#include <gadgetron/PureGadget.h>
-#include <gadgetron/mri_core_acquisition_bucket.h>
-#include <gadgetron/mri_core_data.h>
+#include <PureGadget.h>
+#include <mri_core_acquisition_bucket.h>
+#include <mri_core_data.h>
 namespace Gadgetron {
 class DuplicateReferenceDataGadget
     : public Core::PureGadget<AcquisitionBucket, AcquisitionBucket> {

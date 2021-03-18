@@ -1,50 +1,85 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.10...3.12 FATAL_ERROR)
 
-project(siemens_gadgetron)
+if (${CMAKE_VERSION} VERSION_LESS 3.12)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+else ()
+    cmake_policy(VERSION 3.12)
+endif()
+
+project(siemens_gadgetron LANGUAGES CXX C)
 
 # --- Provide good defaults for searching for packages (i.e. ismrmrd)
-if(EXISTS $ENV{CMAKE_PREFIX_PATH})
-  list(APPEND CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH})
-endif()
-if(EXISTS $ENV{ISMRMRD_HOME})
-  list(APPEND CMAKE_PREFIX_PATH $ENV{ISMRMRD_HOME})
-endif()
+find_program(CCACHE_FOUND ccache)
+if (CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif (CCACHE_FOUND)
+
+if (EXISTS $ENV{CMAKE_PREFIX_PATH})
+    list(APPEND CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH})
+endif ()
+if (EXISTS $ENV{ISMRMRD_HOME})
+    list(APPEND CMAKE_PREFIX_PATH $ENV{ISMRMRD_HOME})
+endif ()
+if (EXISTS $ENV{TORCH_HOME})
+    list(APPEND CMAKE_PREFIX_PATH $ENV{TORCH_HOME})
+endif ()
 if (CMAKE_PREFIX_PATH)
     list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
 endif ()
 message(STATUS "Looking for packages in : ${CMAKE_PREFIX_PATH}")
 # ---
 
-# CMake 3.0 ``MACOSX_RPATH`` is enabled by default.
-if (APPLE)
-    cmake_policy(SET CMP0042 NEW)
-endif()
-set(CMAKE_CXX_STANDARD 17)
-# Require C++11 support
-include(CheckCXXCompilerFlag)
-
 # check the compiler version
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  if (NOT CMAKE_CXX_COMPILER_VERSION) #Compiler version is not set on Ubuntu 12.02 (gcc 4.6)
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_CXX_COMPILER_VERSION)
-  endif()
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-    message("CXX COMPILER VERSION: ${CMAKE_CXX_COMPILER_ID} : ${CMAKE_CXX_COMPILER_VERSION}")
-    message(FATAL_ERROR "Gadgetron requires GCC version >= 4.8")
-  endif()
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if (NOT CMAKE_CXX_COMPILER_VERSION) #Compiler version is not set on Ubuntu 12.02 (gcc 4.6)
+        execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_CXX_COMPILER_VERSION)
+    endif ()
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
+        message("CXX COMPILER VERSION: ${CMAKE_CXX_COMPILER_ID} : ${CMAKE_CXX_COMPILER_VERSION}")
+        message(FATAL_ERROR "Gadgetron requires GCC version >= 6.0")
+    endif ()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.5)
-    message(FATAL_ERROR "Gadgetron requires Clang version >= 3.5")
-  endif()
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.5)
+        message(FATAL_ERROR "Gadgetron requires Clang version >= 3.5")
+    endif ()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
-    message(FATAL_ERROR "Gadgetron requires MSVC 2013 or above ")
-  endif()
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+        message(FATAL_ERROR "Gadgetron requires MSVC 2013 or above ")
+    endif ()
+else ()
+    message(WARNING "Unsupported compiler!")
+endif ()
+
+#VERSIONING AND INSTALL PATHS
+set(GADGETRON_VERSION_MAJOR 4)
+set(GADGETRON_VERSION_MINOR 1)
+set(GADGETRON_VERSION_PATCH 1)
+set(GADGETRON_VERSION_STRING ${GADGETRON_VERSION_MAJOR}.${GADGETRON_VERSION_MINOR}.${GADGETRON_VERSION_PATCH})
+set(GADGETRON_SOVERSION ${GADGETRON_VERSION_MAJOR}.${GADGETRON_VERSION_MINOR})
+find_package(Git)
+if (GIT_FOUND)
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE SIEMENS_GADGETRON_GIT_SHA1_HASH)
+  string(STRIP ${SIEMENS_GADGETRON_GIT_SHA1_HASH} SIEMENS_GADGETRON_GIT_SHA1_HASH)
 else()
-  message(WARNING "Unsupported compiler!")
+  set(SIEMENS_GADGETRON_GIT_SHA1_HASH "NA")
 endif()
 
-find_package(Gadgetron CONFIG REQUIRED)
+set(GADGETRON_INSTALL_CMAKE_PATH share/gadgetron/cmake)
+set(GADGETRON_INSTALL_CONFIG_PATH share/gadgetron/config)
+set(GADGETRON_INSTALL_LOGO_PATH share/gadgetron/logo)
+set(GADGETRON_INSTALL_MATLAB_PATH share/gadgetron/matlab)
+set(GADGETRON_INSTALL_PYTHON_MODULE_PATH share/gadgetron/python)
+set(GADGETRON_INSTALL_SCHEMA_PATH schema)
+set(GADGETRON_INSTALL_INCLUDE_PATH include/gadgetron)
+set(GADGETRON_INSTALL_CHROOT_SCRIPTS_PATH share/gadgetron/chroot)
+if (WIN32)
+    set(GADGETRON_VAR_DIR $ENV{APPDATA}/gadgetron CACHE PATH "Path where Gadgetron will store calibration data, etc" FORCE)
+else ()
+    set(GADGETRON_VAR_DIR /var/lib/gadgetron/ CACHE PATH "Path where Gadgetron will store calibration data, etc" FORCE)
+endif ()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
 #Set the build type to Release if not specified
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -63,62 +98,96 @@ endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 # build options for OpenMP support
 find_package(OpenMP)
-OPTION(USE_OPENMP "Use OpenMP" On)
+option(USE_OPENMP "Use OpenMP" On)
 if (OPENMP_FOUND)
-    if(USE_OPENMP) 
+    if (USE_OPENMP)
         message("OpenMP multithreading enabled")
-        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-        ADD_DEFINITIONS(-DUSE_OMP)
-    else (USE_OPENMP)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        add_definitions(-DUSE_OMP)
+    else ()
         message("OpenMP multithreading is supported, but disabled")
-    endif(USE_OPENMP) 
-else (OPENMP_FOUND)
-  message("OpenMP multithreading not supported")
-endif (OPENMP_FOUND)
+    endif ()
+else ()
+    message("OpenMP multithreading not supported")
+endif ()
 
+set(CMAKE_CXX_STANDARD 17)
 if (WIN32)
-    ADD_DEFINITIONS(-DWIN32 -D_WIN32 -D_WINDOWS)
-#    ADD_DEFINITIONS(-DUNICODE -D_UNICODE)
-    ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
-    ADD_DEFINITIONS(-D_VARIADIC_MAX=10) #to fix compiler limitations in Visual Studio Express
-    ADD_DEFINITIONS("/wd4251") #disable warnings, 4251: needs to have dll-interface to be used by clients
-    ADD_DEFINITIONS("/wd4344") #disable warnings, 4344: behavior change: use of explicit template arguments
-    ADD_DEFINITIONS("/wd4996") #disable warnings, 4996: the POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name
-    if ( HAS_64_BIT )
-        ADD_DEFINITIONS(-DWIN64 -D_WIN64)
-    endif ( HAS_64_BIT )
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /arch:AVX")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /bigobj")
-    SET (CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} /INCREMENTAL:NO")
-    SET (CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} /INCREMENTAL:NO")
-    SET (CMAKE_EXE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
-    SET (CMAKE_SHARED_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
-    SET (CMAKE_STATIC_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
-    SET (CMAKE_MODULE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    add_definitions(-DWIN32 -D_WIN32 -D_WINDOWS -DWIN -D_AMD64_)
+    add_definitions(-Zc:__cplusplus)
+    add_definitions(-DNOMINMAX)
+    #add_definitions(-DUNICODE -D_UNICODE)
+    add_definitions("/wd4251") #disable warnings, 4251: needs to have dll-interface to be used by clients/
+    if (HAS_64_BIT)
+        add_definitions(-DWIN64 -D_WIN64)
+    endif ()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /bigobj /openmp:experimental /permissive- /FS /DNOGDI /we4667")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc /MP /bigobj /w1")
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} /INCREMENTAL:NO")
+    set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} /INCREMENTAL:NO")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
+    set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
+    set(CMAKE_STATIC_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
+    set(CMAKE_MODULE_LINKER_FLAGS_DEBUG "/debug /INCREMENTAL:NO")
     # The two flags below is to fix Windows problems in relation to multiple defined operators new/delete and some constructors that are defined in our headers
-    #SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE") 
-    #SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:MULTIPLE") 
-else (WIN32)
-    if (UNIX)
-        if (APPLE)
-            set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -stdlib=libc++")
-        else ()
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
+    #  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
+    #  set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:MULTIPLE")
+else ()
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    include(CheckCXXCompilerFlag)
+    if (APPLE)
+        if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
         endif ()
     endif ()
-endif (WIN32)
+
+    check_cxx_compiler_flag(-Werror=return-type COMPILER_SUPPORTS_WRETURNTYPE)
+    if (COMPILER_SUPPORTS_WRETURNTYPE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
+    endif ()
+    check_cxx_compiler_flag(-Werror=terminate COMPILER_SUPPORTS_WTERMINATE)
+    if (COMPILER_SUPPORTS_WTERMINATE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=terminate")
+    endif ()
+    check_cxx_compiler_flag(-Werror=non-virtual-dtor COMPILER_SUPPORT_WNON_VIRTUAL)
+    if (COMPILER_SUPPORT_WNON_VIRTUAL)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=non-virtual-dtor")
+    endif ()
+    
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+endif ()
+
+# whether to suppress compilation warnings
+option(BUILD_SUPPRESS_WARNINGS "Build package while suppressing warnings" Off)
+if (BUILD_SUPPRESS_WARNINGS)
+    if (WIN32)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W0")
+    elseif (WIN32)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+    endif ()
+endif ()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_MODULE_PATH ${GADGETRON_HOME}/lib/cmake/ISMRMRD)
+
+# uncomment these if all compiled targets are to be stored in the same directory
+if (WIN32)
+    SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/prod/bin CACHE STRING "Where to put the executables")
+    SET(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/prod/bin CACHE STRING "Where to put the libraries")
+endif (WIN32)
 
 # whether to suppress compilation warnings
 OPTION(BUILD_SUPPRESS_WARNINGS "Build package while suppressing warnings" Off)
 if (BUILD_SUPPRESS_WARNINGS)
     if (WIN32)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W0")
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
     elseif (WIN32)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -w")
+        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -w")
     endif (WIN32)
 endif (BUILD_SUPPRESS_WARNINGS)
 
@@ -128,11 +197,202 @@ if (BUILD_FOR_TIMING)
     ADD_DEFINITIONS(-DBUILD_WITH_TIMING)
 endif (BUILD_FOR_TIMING)
 
+###############################################################
+#Bootstrap search for libraries (We need to find cmake modules in Gadgetron)
+###############################################################
+
+message("GADGETRON_HOME is ${GADGETRON_HOME}")
+
+find_path(GADGETRON_CMAKE_MODULES FindGadgetron.cmake HINTS
+  $ENV{GADGETRON_HOME}/share/gadgetron/cmake
+  ${GADGETRON_HOME}/share/gadgetron/cmake
+  /usr/local/share/gadgetron/cmake)
+
+if (NOT GADGETRON_CMAKE_MODULES)
+   #TODO: Check if path found otherwise create error
+   MESSAGE(FATAL_ERROR "GADGETRON_CMAKE_MODULES cannot be found. 
+   Try to set GADGETRON_HOME environment variable.")
+endif(NOT GADGETRON_CMAKE_MODULES)
+
+find_path(ISMRMRD_CMAKE_MODULES ISMRMRDConfig.cmake  HINTS
+  $ENV{GADGETRON_HOME}/lib/cmake/ISMRMRD 
+  ${GADGETRON_HOME}/lib/cmake/ISMRMRD 
+  /usr/local/lib/cmake/ISMRMRD)
+
+if (NOT ISMRMRD_CMAKE_MODULES)
+   #TODO: Check if path found otherwise create error
+   MESSAGE(FATAL_ERROR "ISMRMRD_CMAKE_MODULES cannot be found. 
+   Try to set GADGETRON_HOME environment variable.")
+endif(NOT ISMRMRD_CMAKE_MODULES)
+
+set(CMAKE_MODULE_PATH ${GADGETRON_CMAKE_MODULES} ${ISMRMRD_CMAKE_MODULES} ${CMAKE_SOURCE_DIR}/cmake)
+###############################################################
+find_package(Gadgetron REQUIRED)
+
+set(CMAKE_INSTALL_PREFIX ${GADGETRON_HOME})
+LINK_DIRECTORIES(${GADGETRON_LIB_DIR})
+
+###############################################################
+find_package(GTest)
+#Add support for the default ubuntu package of gtest (which is not compiled
+if (NOT GTEST_FOUND)
+  find_path(GTEST_SRC_DIR src/gtest.cc HINTS /usr/src/gtest)
+  find_path(GTEST_INCLUDE_DIRS gtest.h HINTS /usr/include/gtest)
+  if (GTEST_SRC_DIR AND GTEST_INCLUDE_DIRS)
+    MESSAGE("GTest src package found. Compiling as part of Gadgetron.")
+    add_subdirectory(${GTEST_SRC_DIR} ${CMAKE_BINARY_DIR}/gtest )
+    include_directories(${GTEST_INCLUDE_DIRS})
+    set(GTEST_FOUND 1)
+    set(GTEST_LIBRARIES gtest gtest_main)
+  endif (GTEST_SRC_DIR AND GTEST_INCLUDE_DIRS)
+endif (NOT GTEST_FOUND)
+
+###############################################################
+find_package(Armadillo REQUIRED )
+add_library(armadillo INTERFACE)
+set_property(TARGET armadillo PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${ARMADILLO_INCLUDE_DIR})
+add_definitions(-DARMA_DONT_USE_WRAPPER -DARMA_USE_CXX11 -DARMA_64BIT_WORD)
+install(TARGETS armadillo EXPORT gtprep-export)
+
+###############################################################
+find_package(FFTW3 REQUIRED COMPONENTS single double)
+add_library(FFTW INTERFACE)
+target_link_libraries(FFTW INTERFACE ${FFTW3_LIBRARIES})
+set_property(TARGET FFTW PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${FFTW3_INCLUDE_DIR})
+install(TARGETS FFTW EXPORT gtprep-export)
+if (FFTW3_FOUND)
+    message("FFTW3 Found")
+else()
+    message("FFTW3 not found")
+endif()
+
+###############################################################
+find_package(ISMRMRD REQUIRED)
+if (ISMRMRD_FOUND)
+    message("ISMRMRD Found")
+else()
+    message("ISMRMRD not found")
+endif()
+
+###############################################################
+option(USE_MKL ON)
+if (USE_MKL)
+    find_package(MKL REQUIRED)
+    add_library(GTBLAS INTERFACE)
+    set_property(TARGET GTBLAS PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${MKL_INCLUDE_DIR})
+    set_property(TARGET GTBLAS PROPERTY INTERFACE_LINK_DIRECTORIES ${MKL_LIB_DIR})
+    set_property(TARGET GTBLAS PROPERTY INTERFACE_LINK_LIBRARIES ${MKL_LIBRARIES})
+
+    string(REPLACE ";" ":" MKL_COMPILER_LIB_DIR_NO_SEMICOLON "${MKL_COMPILER_LIB_DIR}")
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:${MKL_LIB_DIR}:${MKL_COMPILER_LIB_DIR_NO_SEMICOLON}")
+    add_definitions(-DUSE_MKL)
+    set(GADGETRON_BUILD_RPATH "${MKL_LIB_DIR};${MKL_COMPILER_LIB_DIR}")
+else ()
+    find_package(CBLAS REQUIRED)
+    find_package(LAPACK REQUIRED)
+    find_package(LAPACKE REQUIRED)
+    add_library(GTBLAS INTERFACE)
+    set_property(TARGET GTBLAS PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CBLAS_INCLUDE_DIR} ${LAPACK_INCLUDE_DIR} ${LAPACKE_INCLUDE_DIR})
+    set_property(TARGET GTBLAS PROPERTY INTERFACE_LINK_LIBRARIES ${CBLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${LAPACKE_LIBRARIES})
+
+    find_package(PkgConfig)
+    pkg_check_modules(PC_lapacke lapacke)
+
+    string(COMPARE EQUAL ${BLA_VENDOR} "OpenBLAS" USING_OPENBLAS)
+    if (USING_OPENBLAS)
+        message("OpenBLAS detected; setting max number of OpenBLAS pthreads to one.")
+        add_definitions(-DFORCE_LIMIT_OPENBLAS_NUM_THREADS)
+    endif()
+endif ()
+
+###############################################################
+
+#find_package(GMatlab)
+#if (MATLAB_FOUND)
+#  add_definitions(-DUSE_MATLAB)
+#endif ()
+
+###############################################################
+
+#find_package(PLplot)
+#if (PLPLOT_FOUND)
+#    include_directories(${PLPLOT_INCLUDE_DIR})
+#    link_directories(${PLPLOT_LIB_DIR})
+#endif ()
+
+###############################################################
+
+#find_package(DCMTK)
+#if(DCMTK_FOUND)
+#    message("Compiling DICOM tests")
+#    ADD_DEFINITIONS(-DUSE_DCMTK)
+#endif ()
+
+###############################################################
+
+find_package(HDF5 1.8 COMPONENTS C REQUIRED)
+if (HDF5_FOUND)
+   message("HDF5 Found")
+else()
+   message("HDF5 not found")
+endif()
+
+###############################################################
+
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+# necessary for Windows and RHEL <=6 systems
 
 if(WIN32)
-  add_definitions( -DBOOST_ALL_NO_LIB )
-  add_definitions( -DBOOST_ALL_DYN_LINK )
-endif(WIN32)
+    add_definitions( -DHAVE_SNPRINTF) #Python decides to overwrite snprintf if this is not defined, because ofcourse it does.
+endif()
+# We actually only use system and thread explicitly, but they require linking in date_time and chrono
+if (WIN32)
+    find_package(Boost 1.65.0 COMPONENTS system date_time chrono program_options filesystem timer exception REQUIRED )
+else()
+    find_package(Boost 1.65.0 COMPONENTS system program_options filesystem timer REQUIRED )
+endif()
+
+if (NOT DEFINED Boost_VERSION_STRING)
+    set(Boost_VERSION_STRING "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
+endif()
+
+if (Boost_FOUND)
+    message("Found Boost : ${Boost_LIBRARIES}")
+endif()
+
+###############################################################
+
+find_package(PythonLibs 3  REQUIRED)
+
+find_package(NumPy REQUIRED)
+message("Found numpy : ${NUMPY_INCLUDE_DIRS} ${NUMPY_LIBRARIES} ${PYTHON_INCLUDE_DIRS} ${PYTHON_LIBRARIES}")
+
+add_library(python INTERFACE)
+set_property(TARGET python PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIRS})
+message("Boost_VERSION ${Boost_VERSION_STRING}")
+if (Boost_VERSION_STRING VERSION_LESS 1.67.0)
+    find_package(Boost 1.65.0 COMPONENTS python3 REQUIRED)
+    set(Boost_PYTHON3_TARGET Boost::python3)
+    else()
+    string(REGEX MATCH "^3\\.([0-9]+)\\.[0-9]+" PYTHON_MINOR_VERSION ${PYTHONLIBS_VERSION_STRING} )
+    set(PYTHON_MINOR_VERSION ${CMAKE_MATCH_1})
+    find_package(Boost 1.65.0 COMPONENTS "python3${PYTHON_MINOR_VERSION}" REQUIRED)
+    set(Boost_PYTHON3_FOUND TRUE)
+    set(Boost_PYTHON3_TARGET Boost::python3${PYTHON_MINOR_VERSION})
+endif()
+set_property(TARGET python PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIRS})
+target_link_libraries(python INTERFACE ${PYTHON_LIBRARIES} ${NUMPY_LIBRARIES} ${Boost_PYTHON3_TARGET})
+install(TARGETS python EXPORT gtprep-export)
+
+if (Boost_FOUND)
+    add_library(Boost INTERFACE)
+    set_property(TARGET Boost PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${BOOST_INCLUDE_DIRS})
+    target_link_libraries(Boost INTERFACE ${Boost_LIBRARIES})
+endif()
+
+###############################################################
 
 
 

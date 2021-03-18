@@ -7,7 +7,7 @@
 #pragma once
 
 #include "sashahclib_export.h"
-#include <gadgetron/CmrParametricMappingGadget.h>
+#include <CmrParametricMappingGadget.h>
 
 namespace Gadgetron {
 

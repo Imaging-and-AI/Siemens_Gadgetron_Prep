@@ -12,6 +12,18 @@ if(WIN32)
     link_directories(${Boost_LIBRARY_DIRS})
 endif(WIN32)
 
+include_directories(
+    ${GADGETRON_INCLUDE_DIR}
+    )
+
+include_directories(${CMAKE_SOURCE_DIR}
+                    ${ISMRMRD_INCLUDE_DIR}
+                    ${Boost_INCLUDE_DIR}
+                    ${PYTHON_INCLUDE_PATH}
+                    ${NUMPY_INCLUDE_DIRS}
+                    ${ARMADILLO_LIBRARIES} 
+                    )
+
 set( config_files
     config/Siemens_Gadgetron_LGE_MOCO_AVE.xml 
     config/Siemens_Gadgetron_LGE_MOCO_AVE_dstore.xml 
@@ -44,15 +56,33 @@ add_library(gadgetron_siemens_moco_ave SHARED
 
 target_link_libraries(gadgetron_siemens_moco_ave
     gadgetron_siemens_toolbox_core 
-    Gadgetron::gadgetron_toolbox_cpucore
-    Gadgetron::gadgetron_toolbox_cpucore_math
-    Gadgetron::gadgetron_toolbox_cpufft
-    Gadgetron::gadgetron_toolbox_cpuklt
-    Gadgetron::gadgetron_toolbox_log
-    Gadgetron::gadgetron_toolbox_mri_core
-    Gadgetron::gadgetron_toolbox_cpudwt
-    Gadgetron::gadgetron_toolbox_cpuoperator
-    Gadgetron::gadgetron_toolbox_cpu_image
+    gadgetron_toolbox_cpucore
+    gadgetron_toolbox_cpucore_math
+    gadgetron_toolbox_cpufft
+    gadgetron_toolbox_cpuklt
+    gadgetron_toolbox_log
+    gadgetron_toolbox_mri_core
+    gadgetron_toolbox_cpudwt
+    gadgetron_toolbox_cpuoperator
+    gadgetron_mricore
+    gadgetron_toolbox_cpu_image
+    gadgetron_toolbox_fatwater
+    gadgetron_toolbox_denoise
+    gadgetron_toolbox_image_analyze_io
+
+    gadgetron_core
+    gadgetron_core_writers
+    gadgetron_core_readers
+    gadgetron_core_parallel
+    gadgetron_core_distributed
+
+    gadgetron_toolbox_image_analyze_io
+    gadgetron_toolbox_hostutils
+
+    ${ISMRMRD_LIBRARIES}
+    Boost::system
+    Boost::filesystem
+    Boost::program_options
     )
 
 install (FILES  ${config_files}

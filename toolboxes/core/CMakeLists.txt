@@ -8,6 +8,18 @@ if(WIN32)
     link_directories(${Boost_LIBRARY_DIRS})
 endif(WIN32)
 
+include_directories(
+    ${GADGETRON_INCLUDE_DIR}
+    )
+
+include_directories(${CMAKE_SOURCE_DIR}
+                    ${ISMRMRD_INCLUDE_DIR}
+                    ${Boost_INCLUDE_DIR}
+                    ${PYTHON_INCLUDE_PATH}
+                    ${NUMPY_INCLUDE_DIRS}
+                    ${ARMADILLO_LIBRARIES} 
+                    )
+
 set( core_header_files gadgetron_siemens_toolbox_core_export.h )
 set( core_src_files )
 
@@ -39,17 +51,22 @@ add_library(gadgetron_siemens_toolbox_core SHARED ${source_files})
 set_target_properties(gadgetron_siemens_toolbox_core PROPERTIES VERSION ${GADGETRON_VERSION_STRING} SOVERSION ${GADGETRON_SOVERSION})
 
 target_link_libraries(gadgetron_siemens_toolbox_core
-                        Gadgetron::gadgetron_toolbox_cpufft
-                        Gadgetron::gadgetron_toolbox_cpuklt
-                        Gadgetron::gadgetron_toolbox_image_analyze_io
-                        Gadgetron::gadgetron_toolbox_cpucore
-                        Gadgetron::gadgetron_toolbox_cpucore_math
-                        Gadgetron::gadgetron_toolbox_mri_core
-                        Gadgetron::gadgetron_toolbox_log
-                        Gadgetron::gadgetron_toolbox_cpudwt
-                        Gadgetron::gadgetron_toolbox_cmr
-                        Gadgetron::gadgetron_toolbox_pr
-                        Gadgetron::gadgetron_toolbox_cpu_image )
+                        gadgetron_toolbox_cpufft
+                        gadgetron_toolbox_cpuklt
+                        gadgetron_toolbox_image_analyze_io
+                        gadgetron_toolbox_cpucore
+                        gadgetron_toolbox_cpucore_math
+                        gadgetron_toolbox_mri_core
+                        gadgetron_toolbox_log
+                        gadgetron_toolbox_cpudwt
+                        gadgetron_toolbox_cmr
+                        gadgetron_toolbox_pr
+                        gadgetron_toolbox_cpu_image 
+                        ${ISMRMRD_LIBRARIES}
+                        Boost::system
+                        Boost::filesystem
+                        Boost::program_options
+                        )
 
 target_include_directories(gadgetron_siemens_toolbox_core PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

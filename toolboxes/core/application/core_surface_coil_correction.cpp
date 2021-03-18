@@ -4,10 +4,10 @@
 */
 
 #include "core_surface_coil_correction.h"
-#include <gadgetron/hoNDArray_utils.h>
-#include <gadgetron/hoNDArray_elemwise.h>
-#include <gadgetron/hoNDImage_util.h>
-#include <gadgetron/morphology.h>
+#include <hoNDArray_utils.h>
+#include <hoNDArray_elemwise.h>
+#include <hoNDImage_util.h>
+#include <morphology.h>
 
 namespace Gadgetron { 
 

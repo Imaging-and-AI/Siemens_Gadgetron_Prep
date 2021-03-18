@@ -4,9 +4,9 @@
 #define CALCMOLLITIGADGET_H
 
 #include "sashahclib_export.h"
-#include <gadgetron/Gadget.h>
-#include <gadgetron/GadgetMRIHeaders.h>
-#include <gadgetron/hoNDArray.h>
+#include <Gadget.h>
+#include <GadgetMRIHeaders.h>
+#include <hoNDArray.h>
 #include <complex>
 #include <ismrmrd/ismrmrd.h>
 

@@ -1,6 +1,6 @@
 
 #include "GtImageMoCoAveGadget.h"
-#include <gadgetron/mri_core_utility.h>
+#include <mri_core_utility.h>
 
 namespace Gadgetron { 
 

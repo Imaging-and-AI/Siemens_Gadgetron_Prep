@@ -7,7 +7,7 @@
 */
 
 #include "core_moco_averaging.h"
-#include <gadgetron/hoImageRegContainer2DRegistration.h>
+#include <hoImageRegContainer2DRegistration.h>
 
 namespace Gadgetron { 
 

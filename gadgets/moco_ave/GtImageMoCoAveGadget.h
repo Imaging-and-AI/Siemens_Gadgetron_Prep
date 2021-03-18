@@ -9,7 +9,7 @@
 #pragma once
 
 #include "gadgetron_siemens_moco_ave_export.h"
-#include <gadgetron/GenericImageReconGadget.h>
+#include <GenericImageReconGadget.h>
 #include "core_moco_averaging.h"
 
 namespace Gadgetron {

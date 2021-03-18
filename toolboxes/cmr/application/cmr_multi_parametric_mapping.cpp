@@ -5,18 +5,18 @@
 
 
 #include "cmr_multi_parametric_mapping.h"
-#include <gadgetron/log.h>
+#include <log.h>
 
 
-#include <gadgetron/hoNDArray_math.h>
-#include <gadgetron/ho2DArray.h>
-#include <gadgetron/ho3DArray.h>
+#include <hoNDArray_math.h>
+#include <ho2DArray.h>
+#include <ho3DArray.h>
 
-#include <gadgetron/morphology.h>
-#include <gadgetron/BSplineFFD2D.h>
-#include <gadgetron/hoNDBSpline.h>
+#include <morphology.h>
+#include <BSplineFFD2D.h>
+#include <hoNDBSpline.h>
 
-#include <gadgetron/hoNDArray_linalg.h>
+#include <hoNDArray_linalg.h>
 
 #include <boost/math/special_functions/sign.hpp>
 
@@ -307,7 +307,7 @@ void CmrMultiParametricMapping<T>::perform_parametric_mapping()
                     pMaskCurr = pMask + s*RO*E1 + slc*S*RO*E1;
                 }
 
-#pragma omp parallel default(none) private(e1, ro, n) shared(RO, E1, pMask, pMaskCurr, pData, pMap, pMapSD, pPara, pParaSD, N, NUM)
+#pragma omp parallel private(e1, ro, n) shared(RO, E1, pMask, pMaskCurr, pData, pMap, pMapSD, pPara, pParaSD, N, NUM)
 //#pragma omp parallel
                 {
                     std::vector<T> yi(N, 0);

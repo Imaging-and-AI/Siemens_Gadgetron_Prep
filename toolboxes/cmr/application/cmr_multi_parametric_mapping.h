@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <gadgetron/cmr_parametric_mapping.h>
+#include <cmr_parametric_mapping.h>
 
 namespace Gadgetron { 
     template <typename T>
