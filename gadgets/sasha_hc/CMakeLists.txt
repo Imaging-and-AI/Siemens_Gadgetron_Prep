@@ -21,7 +21,6 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${Boost_INCLUDE_DIR}
                     ${PYTHON_INCLUDE_PATH}
                     ${NUMPY_INCLUDE_DIRS}
-                    ${ARMADILLO_LIBRARIES} 
                     )
 
 set(python_files

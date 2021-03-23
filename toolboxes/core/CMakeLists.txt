@@ -17,7 +17,6 @@ include_directories(${CMAKE_SOURCE_DIR}
                     ${Boost_INCLUDE_DIR}
                     ${PYTHON_INCLUDE_PATH}
                     ${NUMPY_INCLUDE_DIRS}
-                    ${ARMADILLO_LIBRARIES} 
                     )
 
 set( core_header_files gadgetron_siemens_toolbox_core_export.h )
