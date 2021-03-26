@@ -6,7 +6,7 @@
 #pragma once
 
 #include "sashahclib_export.h"
-#include <GenericReconBase.h>
+#include "GenericReconBase.h"
 
 namespace Gadgetron {
 

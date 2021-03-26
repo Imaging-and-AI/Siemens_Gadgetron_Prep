@@ -63,7 +63,7 @@
         <!-- parameters for debug and timing -->
         <property><name>debug_folder</name><value></value></property>
         <property><name>perform_timing</name><value>true</value></property>
-        <property><name>verbose</name><value>true</value></property>
+        <property><name>verbose</name><value>false</value></property>
 
         <!-- averaging across repetition -->
         <property><name>average_all_ref_N</name><value>true</value></property>
@@ -114,7 +114,7 @@
         <!-- parameters for debug and timing -->
         <property><name>debug_folder</name><value></value></property>
         <property><name>perform_timing</name><value>true</value></property>
-        <property><name>verbose</name><value>true</value></property>
+        <property><name>verbose</name><value>false</value></property>
 
         <!-- whether to send out gfactor -->
         <property><name>send_out_gfactor</name><value>false</value></property>
@@ -202,7 +202,7 @@
     <gadget>
         <name>MultiRep</name>
         <dll>gadgetron_siemens_sasha_hc</dll>
-        <classname>SashaHCMultiRepGadget</classname>
+        <classname>SashaHCMultiAveGadget</classname>
     </gadget>
 
     <!-- T1 SASHA moco -->
@@ -212,7 +212,7 @@
         <classname>MoCoSashaHCGadget</classname>
 
         <property><name>perform_timing</name><value>true</value></property>
-        <property><name>verbose</name><value>true</value></property>
+        <property><name>verbose</name><value>false</value></property>
         <property><name>debug_folder</name><value></value></property>
 
         <property><name>send_ori</name><value>true</value></property>
@@ -325,21 +325,5 @@
         <dll>gadgetron_mricore</dll>
         <classname>ImageFinishGadget</classname>
     </gadget>
-
-<!--    <gadget>-->
-<!--        <name>FloatToShortAttrib</name>-->
-<!--        <dll>gadgetron_mricore</dll>-->
-<!--        <classname>FloatToUShortGadget</classname>-->
-
-<!--        <property><name>max_intensity</name><value>32767</value></property>-->
-<!--        <property><name>min_intensity</name><value>0</value></property>-->
-<!--        <property><name>intensity_offset</name><value>0</value></property>-->
-<!--    </gadget>-->
-
-<!--    <gadget>-->
-<!--        <name>ImageFinish</name>-->
-<!--        <dll>gadgetron_mricore</dll>-->
-<!--        <classname>ImageFinishGadget</classname>-->
-<!--    </gadget>-->
 
 </gadgetronStreamConfiguration>

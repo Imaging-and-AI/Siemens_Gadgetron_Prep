@@ -35,6 +35,7 @@ namespace Gadgetron {
         // --------------------------------------------------
 
         int max_ave_;
+        int max_rep_;
 
         std::vector<IsmrmrdImageArray> buf_lc_;
         std::vector<IsmrmrdImageArray> buf_hc_;

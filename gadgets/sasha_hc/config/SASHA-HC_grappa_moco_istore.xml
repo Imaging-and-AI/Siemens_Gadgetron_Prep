@@ -210,7 +210,7 @@
     <gadget>
         <name>MultiRep</name>
         <dll>gadgetron_siemens_sasha_hc</dll>
-        <classname>SashaHCMultiRepGadget</classname>
+        <classname>SashaHCMultiAveGadget</classname>
     </gadget>
 
     <!-- T1 SASHA moco -->

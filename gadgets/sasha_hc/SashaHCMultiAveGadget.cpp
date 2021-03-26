@@ -2,6 +2,7 @@
 #include "SashaHCMultiAveGadget.h"
 #include <iomanip>
 #include <sstream>
+#include "hoNDArray_elemwise.h"
 
 namespace Gadgetron { 
 
@@ -30,11 +31,13 @@ namespace Gadgetron {
 
         ISMRMRD::EncodingLimits e_limits = h.encoding[0].encodingLimits;
         max_ave_ = e_limits.average ? e_limits.average->maximum : 0;
+        max_rep_ = e_limits.repetition ? e_limits.repetition->maximum : 0;
 
-        GDEBUG_STREAM("Maximal repetition is " << max_ave_);
+        GDEBUG_STREAM("Maximal repetition is " << max_rep_);
+        GDEBUG_STREAM("Maximal average is " << max_ave_);
 
-        buf_lc_.resize(max_ave_ + 1);
-        buf_hc_.resize(max_ave_ + 1);
+        buf_lc_.resize((max_ave_ + 1) * (max_rep_ + 1));
+        buf_hc_.resize((max_ave_ + 1) * (max_rep_ + 1));
 
         return GADGET_OK;
     }
@@ -104,6 +107,9 @@ namespace Gadgetron {
         // check incoming data rep
         int32_t con = m1->getObjectPtr()->headers_(0, 0, 0).contrast;
         int32_t ave = m1->getObjectPtr()->headers_(0, 0, 0).average;
+        int32_t rep = m1->getObjectPtr()->headers_(0, 0, 0).repetition;
+
+        size_t buf_ind = rep + ave * (this->max_rep_ + 1);
 
         //if(max_rep_==0)
         //{
@@ -115,38 +121,52 @@ namespace Gadgetron {
         //}
 
         if (con == 0)
-            buf_lc_[ave] = *m1->getObjectPtr();
+            buf_lc_[buf_ind] = *m1->getObjectPtr();
         else
-            buf_hc_[ave] = *m1->getObjectPtr();
+            buf_hc_[buf_ind] = *m1->getObjectPtr();
 
-        if (ave == max_ave_ && con==1)
+        if (ave == max_ave_ && rep == max_rep_ && con==1)
         {
             size_t AVE = max_ave_ + 1;
+            size_t REP = max_rep_ + 1;
 
             // combine and send out data
             Gadgetron::GadgetContainerMessage<IsmrmrdImageArray>* cm1 = new Gadgetron::GadgetContainerMessage<IsmrmrdImageArray>();
 
             IsmrmrdImageArray* pRes = cm1->getObjectPtr();
 
-            pRes->data_.create(RO, E1, E2, CHA, N*AVE, 2*S, SLC);
-            pRes->headers_.create(N*AVE, 2*S, SLC);
-            pRes->meta_.resize(N*AVE* 2 * S*SLC);
+            pRes->data_.create(RO, E1, E2, CHA, N*AVE*REP, 2*S, SLC);
+            Gadgetron::clear(pRes->data_);
+            pRes->headers_.create(N*AVE * REP, 2*S, SLC);
+            pRes->meta_.resize(N*AVE*REP*2*S*SLC);
 
-            size_t slc, n, ave;
+            size_t slc, n, ave, rep, im_no(0);
             for (slc = 0; slc<SLC; slc++)
             {
                 for (ave = 0; ave < AVE; ave++)
                 {
-                    memcpy(&pRes->data_(0, 0, 0, 0, ave*N, 0, slc), &buf_lc_[ave].data_(0, 0, 0, 0, 0, 0, slc), sizeof(std::complex<float>)*RO*E1*E2*CHA*N);
-                    memcpy(&pRes->data_(0, 0, 0, 0, ave*N, 1, slc), &buf_hc_[ave].data_(0, 0, 0, 0, 0, 0, slc), sizeof(std::complex<float>)*RO*E1*E2*CHA*N);
-
-                    for (n = 0; n < N; n++)
+                    for (rep = 0; rep < REP; rep++)
                     {
-                        pRes->headers_(n + ave*N, 0, slc) = buf_lc_[ave].headers_(n, 0, slc);
-                        pRes->meta_[n + ave*N + 0*N*AVE + slc*N*S*AVE] = buf_lc_[ave].meta_[n+0*N+slc*N*S];
+                        size_t ind = rep + ave * REP;
+                        memcpy(&pRes->data_(0, 0, 0, 0, ind* N, 0, slc), &buf_lc_[ind].data_(0, 0, 0, 0, 0, 0, slc), sizeof(std::complex<float>) * RO * E1 * E2 * CHA * N);
+                        memcpy(&pRes->data_(0, 0, 0, 0, ind* N, 1, slc), &buf_hc_[ind].data_(0, 0, 0, 0, 0, 0, slc), sizeof(std::complex<float>) * RO * E1 * E2 * CHA * N);
 
-                        pRes->headers_(n + ave*N, 1, slc) = buf_hc_[ave].headers_(n, 0, slc);
-                        pRes->meta_[n + ave *N + 1 * N*AVE + slc*N*S*AVE] = buf_hc_[ave].meta_[n + 0 * N + slc*N*S];
+                        for (n = 0; n < N; n++)
+                        {
+                            pRes->headers_(n + ind * N, 0, slc) = buf_lc_[ind].headers_(n, 0, slc);
+                            pRes->meta_[n + ind * N + 0 * N * AVE*REP + slc * N * S * AVE * REP] = buf_lc_[ind].meta_[n + 0 * N + slc * N * S];
+                            pRes->headers_(n + ind * N, 0, slc).image_index = 1 + im_no; // 1 + n + ave * N + slc * AVE * REP * N;
+                            pRes->headers_(n + ind * N, 0, slc).contrast = 0;
+                            pRes->headers_(n + ind * N, 0, slc).average = 0;
+                            pRes->headers_(n + ind * N, 0, slc).repetition = 0;
+
+                            pRes->headers_(n + ind * N, 1, slc) = buf_hc_[ind].headers_(n, 0, slc);
+                            pRes->meta_[n + ind * N + 1 * N * AVE * REP + slc * N * S * AVE * REP] = buf_hc_[ind].meta_[n + 0 * N + slc * N * S];
+                            pRes->headers_(n + ind * N, 1, slc).image_index = 1 + im_no; // 1 + n + ave * N + slc * AVE * REP * N + N * AVE * REP * SLC;
+                            pRes->headers_(n + ind * N, 1, slc).contrast = 1;
+                            pRes->headers_(n + ind * N, 1, slc).average = 0;
+                            pRes->headers_(n + ind * N, 1, slc).repetition = 0;
+                        }
                     }
                 }
             }

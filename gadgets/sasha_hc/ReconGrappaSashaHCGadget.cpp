@@ -1,5 +1,5 @@
 #include "ReconGrappaSashaHCGadget.h"
-#include <mri_core_grappa.h>
+#include "mri_core_grappa.h"
 
 namespace Gadgetron {
 
@@ -153,7 +153,10 @@ namespace Gadgetron {
                             }
                         }
                     }
-                    GDEBUG_STREAM("e: " << e << " minE1: " << minE1 << " maxE1: " << maxE1);
+                    if (this->verbose.value())
+                    {
+                        GDEBUG_STREAM("e: " << e << " minE1: " << minE1 << " maxE1: " << maxE1);
+                    }
 
                     if (e == 0)
                     {

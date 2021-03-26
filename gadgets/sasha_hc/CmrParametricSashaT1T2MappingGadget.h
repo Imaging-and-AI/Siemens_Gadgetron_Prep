@@ -7,7 +7,7 @@
 #pragma once
 
 #include "sashahclib_export.h"
-#include <CmrParametricMappingGadget.h>
+#include "CmrParametricMappingGadget.h"
 
 namespace Gadgetron {
 
@@ -33,7 +33,8 @@ namespace Gadgetron {
         GADGET_PROPERTY(anchor_image_index, size_t, "Index for anchor image; by default, the first image is the anchor (without SR pulse)", 0);
         GADGET_PROPERTY(anchor_TS,          double, "Saturation time for anchor",            100000);
 
-        GADGET_PROPERTY(color_lut_map_15T, std::string, "Color lookup table for map at 1.5T", "MicroDeltaHotMetal.pal");
+        GADGET_PROPERTY(color_lut_map_15T, std::string, "Color lookup table for map at 1.5T", "GadgetronT1_SR_1_5T.pal");
+        GADGET_PROPERTY(color_lut_map_3T, std::string, "Color lookup table for map at 1.5T", "GadgetronT1_SR_3T.pal");
 
         GADGET_PROPERTY(window_center_t1map_15T, double, "Window center for T1 map at 1.5T", 1300);
         GADGET_PROPERTY(window_width_t1map_15T,  double, "Window width for T1 map at 1.5T",  1300);

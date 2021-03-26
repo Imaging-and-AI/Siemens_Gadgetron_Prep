@@ -2,7 +2,7 @@
 #define RECONGRAPPASASHAHCGRAPPA_H
 
 #include "sashahclib_export.h"
-#include <GenericReconCartesianGrappaGadget.h>
+#include "GenericReconCartesianGrappaGadget.h"
 
 namespace Gadgetron {
     class EXPORTSASHAHC ReconGrappaSashaHCGadget :

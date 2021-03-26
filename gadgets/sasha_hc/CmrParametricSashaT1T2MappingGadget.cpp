@@ -3,11 +3,11 @@
 #include <iomanip>
 #include <sstream>
 
-#include <hoNDArray_reductions.h>
-#include <mri_core_def.h>
-#include <hoNDArray_utils.h>
-#include <hoNDArray_elemwise.h>
-#include <mri_core_utility.h>
+#include "hoNDArray_reductions.h"
+#include "mri_core_def.h"
+#include "hoNDArray_utils.h"
+#include "hoNDArray_elemwise.h"
+#include "mri_core_utility.h"
 // #include "cmr_t1_mapping.h"
 #include "cmr_sasha_t1_t2_mapping.h"
 
@@ -287,6 +287,26 @@ namespace Gadgetron {
                 gt_exporter_.export_array_complex(map_sd.data_,  debug_folder_full_path_ + "map_sd"  + str);
                 gt_exporter_.export_array_complex(para_sd.data_, debug_folder_full_path_ + "para_sd" + str);
             }
+
+            // before sending the images, make sure the TS and TE are correct
+            for (slc = 0; slc < SLC; slc++)
+            {
+                for (s = 0; s < S; s++)
+                {
+                    for (n = 0; n < N; n++)
+                    {
+                        size_t ind = n + s * N + slc * N * S;
+
+                        float ts = this->prep_times_ts_[n + s * N];
+                        float t2p = this->prep_times_t2p_[n + s * N];
+
+                        m1->getObjectPtr()->meta_[ind].set(GADGETRON_IMAGE_SATURATIONTIME, (double)ts);
+                        m1->getObjectPtr()->meta_[ind].set(GADGETRON_IMAGE_INVERSIONTIME, (double)ts);
+                        m1->getObjectPtr()->meta_[ind].set(GADGETRON_IMAGE_ECHOTIME, (double)t2p);
+                    }
+                }
+            }
+
 
             // sending the incoming images
             if (this->next()->putq(m1) == -1)

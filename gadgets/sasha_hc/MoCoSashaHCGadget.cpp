@@ -2,9 +2,9 @@
 #include "MoCoSashaHCGadget.h"
 #include <iomanip>
 
-#include <hoNDArray_reductions.h>
-#include <mri_core_def.h>
-#include <cmr_motion_correction.h>
+#include "hoNDArray_reductions.h"
+#include "mri_core_def.h"
+#include "cmr_motion_correction.h"
 
 namespace Gadgetron {
 
@@ -34,8 +34,8 @@ namespace Gadgetron {
         GDEBUG_CONDITION_STREAM(verbose.value(), "Number of encoding spaces: " << num_encoding_spaces_);
 
         iters_.resize(4);
-        iters_[0] = 32;
-        iters_[1] = 64;
+        iters_[0] = 64;
+        iters_[1] = 100;
         iters_[2] = 100;
         iters_[3] = 100;
 
@@ -57,7 +57,7 @@ namespace Gadgetron {
         IsmrmrdImageArray* recon_res_ = m1->getObjectPtr();
 
         size_t encoding = (size_t)recon_res_->meta_[0].as_long("encoding", 0);
-        GADGET_CHECK_RETURN(encoding<num_encoding_spaces_, GADGET_FAIL);
+        GADGET_CHECK_RETURN(encoding < num_encoding_spaces_, GADGET_FAIL);
 
         std::string imageInfo;
 
@@ -90,27 +90,34 @@ namespace Gadgetron {
             T* pDiffN = &(diff(0, 0, 0, 0, 0, 0, slc));
             hoNDArray<T> diffArray(RO, E1, E2, CHA, N, pDiffN);
 
-//            Gadgetron::subtract(firstArray, secondArray, diffArray);
+            // Subtract the magnitude images to avoid phase issues
+        	hoNDArray<T> firstMag, secondMag;//, diff_mag, diff_mag_norm;
+        	Gadgetron::abs(firstArray, firstMag);
+        	Gadgetron::abs(secondArray, secondMag);
+        	Gadgetron::subtract(firstMag, secondMag, diffArray);
+        
+        	Gadgetron::normalize(&diffArray);
+        	diffArray *= (T)2048;
+        	diffArray += (T)2048;
+        }
 
-			// Subtract the magnitude images to avoid phase issues
-			hoNDArray<T> firstMag, secondMag;//, diff_mag, diff_mag_norm;
-			Gadgetron::abs(firstArray, firstMag);
-			Gadgetron::abs(secondArray, secondMag);
-			Gadgetron::subtract(firstMag, secondMag, diffArray);
+        //for (slc = 0; slc < SLC; slc++)
+        //{
+        //    memcpy(&diff(0, 0, 0, 0, 0, 0, slc), &(recon_res_->data_(0, 0, 0, 0, 0, 1, slc)), sizeof(T) * RO * E1 * E2 * CHA * N);
+        //}
 
-			// Converting to unsigned here (consider removing for real recon)
-//			T maxVal;
-//			Gadgetron::maxValue(diffArray, maxVal);
-			Gadgetron::normalize(&diffArray);
-//			diffArray *= maxVal/(T)2;
-//			diffArray += maxVal/(T)2;
-			diffArray *= (T)2048;
-			diffArray += (T)2048;
+        if (!debug_folder_full_path_.empty())
+        {
+            hoNDArray<T> data = recon_res_->data_;
+            data.squeeze();
+            gt_exporter_.export_array_complex(data, debug_folder_full_path_ + "MoCoSashaHC_data_" + str);
         }
 
         if (!debug_folder_full_path_.empty())
         {
-            gt_exporter_.export_array_complex(diff, debug_folder_full_path_ + "MoCoSashaHC_diff_" + str);
+            hoNDArray<T> data = diff;
+            data.squeeze();
+            gt_exporter_.export_array_complex(data, debug_folder_full_path_ + "MoCoSashaHC_diff_" + str);
         }
 
         // find the key frame and run the moco
@@ -119,7 +126,9 @@ namespace Gadgetron {
 
         if (!debug_folder_full_path_.empty())
         {
-            gt_exporter_.export_array(diffMag, debug_folder_full_path_ + "MoCoSashaHC_diffMag_" + str);
+            hoNDArray<real_value_type> data = diffMag;
+            data.squeeze();
+            gt_exporter_.export_array(data, debug_folder_full_path_ + "MoCoSashaHC_diffMag_" + str);
         }
 
         bool warp_input = false;
@@ -145,7 +154,7 @@ namespace Gadgetron {
             if (perform_timing.value()) { gt_timer_local_.start(moco_str.c_str()); }
             Gadgetron::hoImageRegContainer2DRegistration<ImageType, ImageType, double> reg;
 
-            Gadgetron::perform_moco_fixed_key_frame_2DT(target, key_frame, (real_value_type)(regularization_hilbert_strength.value()), iters_, bidirectional_moco.value(), warp_input, reg);
+            Gadgetron::perform_moco_fixed_key_frame_2DT(target, key_frame, (real_value_type)(10.0), iters_, bidirectional_moco.value(), warp_input, reg);
 
             if (perform_timing.value()) { gt_timer_local_.stop(); }
 
@@ -162,6 +171,23 @@ namespace Gadgetron {
             firstArray_real.squeeze();
             firstArray_imag.squeeze();
 
+            if (!debug_folder_full_path_.empty())
+            {
+                std::stringstream os;
+                os << "called_" << process_called_times_ << "_slc" << slc;
+                std::string str = os.str();
+
+                gt_exporter_.export_array(firstArray_real, debug_folder_full_path_ + "MoCoSashaHC_firstArray_real_" + str);
+                gt_exporter_.export_array(firstArray_imag, debug_folder_full_path_ + "MoCoSashaHC_firstArray_imag_" + str);
+                gt_exporter_.export_array(target, debug_folder_full_path_ + "MoCoSashaHC_target_" + str);
+            }
+
+            hoNDArray<T> secondArray;
+            secondArray.create(RO, E1, N);
+            memcpy(secondArray.begin(), &(recon_res_->data_(0, 0, 0, 0, 0, 1, slc)), secondArray.get_number_of_bytes());
+            hoNDArray<real_value_type> secondArray_real, secondArray_imag;
+            Gadgetron::complex_to_real_imag(secondArray, secondArray_real, secondArray_imag);
+
             hoNDArray<double> dx, dy;
             reg.deformation_field_[0].to_NDArray(0, dx);
             reg.deformation_field_[1].to_NDArray(0, dy);
@@ -171,13 +197,87 @@ namespace Gadgetron {
             Gadgetron::apply_deformation_field(firstArray_imag, dx, dy, firstArray_imag_moco);
             Gadgetron::apply_deformation_field(target,          dx, dy, target_moco);
 
-            pFirstN = &(moco(0, 0, 0, 0, 0, 0, slc));
-            hoNDArray<T> firstArrayMOCO(RO, E1, N, pFirstN);
+            hoNDArray<real_value_type> secondArray_real_moco, secondArray_imag_moco;
+            Gadgetron::apply_deformation_field(secondArray_real, dx, dy, secondArray_real_moco);
+            Gadgetron::apply_deformation_field(secondArray_imag, dx, dy, secondArray_imag_moco);
+
+            if (!debug_folder_full_path_.empty())
+            {
+                std::stringstream os;
+                os << "called_" << process_called_times_ << "_slc" << slc;
+                std::string str = os.str();
+
+                gt_exporter_.export_array(firstArray_real_moco, debug_folder_full_path_ + "MoCoSashaHC_firstArray_real_moco_" + str);
+                gt_exporter_.export_array(firstArray_imag_moco, debug_folder_full_path_ + "MoCoSashaHC_firstArray_imag_moco_" + str);
+                gt_exporter_.export_array(target_moco, debug_folder_full_path_ + "MoCoSashaHC_target_moco_" + str);
+
+                gt_exporter_.export_array(secondArray_real_moco, debug_folder_full_path_ + "MoCoSashaHC_secondArray_real_moco_" + str);
+                gt_exporter_.export_array(secondArray_imag_moco, debug_folder_full_path_ + "MoCoSashaHC_secondArray_imag_moco_" + str);
+            }
+
+            hoNDArray<T> firstArrayMOCO;
+            firstArrayMOCO.create(RO, E1, N);
             Gadgetron::real_imag_to_complex(firstArray_real_moco, firstArray_imag_moco, firstArrayMOCO);
+
+            hoNDArray<T> secondArrayMOCO;
+            secondArrayMOCO.create(RO, E1, N);
+            Gadgetron::real_imag_to_complex(secondArray_real_moco, secondArray_imag_moco, secondArrayMOCO);
+
+            if (!debug_folder_full_path_.empty())
+            {
+                std::stringstream os;
+                os << "called_" << process_called_times_ << "_slc" << slc;
+                std::string str = os.str();
+
+                gt_exporter_.export_array_complex(firstArrayMOCO, debug_folder_full_path_ + "MoCoSashaHC_firstArrayMOCO_" + str);
+                gt_exporter_.export_array_complex(secondArrayMOCO, debug_folder_full_path_ + "MoCoSashaHC_secondArrayMOCO_" + str);
+            }
+
+            {
+                hoNDArray<real_value_type> target2;
+                Gadgetron::abs(secondArrayMOCO, target2);
+                Gadgetron::hoImageRegContainer2DRegistration<ImageType, ImageType, double> reg2;
+                Gadgetron::perform_moco_fixed_key_frame_2DT(target2, key_frame, (real_value_type)(regularization_hilbert_strength.value()), iters_, bidirectional_moco.value(), warp_input, reg2);
+
+                hoNDArray<double> dx2, dy2;
+                reg2.deformation_field_[0].to_NDArray(0, dx2);
+                reg2.deformation_field_[1].to_NDArray(0, dy2);
+
+                hoNDArray<real_value_type> firstArray_real2, firstArray_imag2;
+                Gadgetron::complex_to_real_imag(firstArrayMOCO, firstArray_real2, firstArray_imag2);
+
+                hoNDArray<real_value_type> firstArray_real_moco2, firstArray_imag_moco2, target_moco2;
+                Gadgetron::apply_deformation_field(firstArray_real2, dx2, dy2, firstArray_real_moco2);
+                Gadgetron::apply_deformation_field(firstArray_imag2, dx2, dy2, firstArray_imag_moco2);
+                Gadgetron::apply_deformation_field(target2, dx2, dy2, target_moco2);
+
+                hoNDArray<T> firstArrayMOCO2;
+                firstArrayMOCO2.create(RO, E1, N);
+                Gadgetron::real_imag_to_complex(firstArray_real_moco2, firstArray_imag_moco2, firstArrayMOCO2);
+
+                /*std::vector<double> mean_deform, max_deform, mean_log_jac, max_log_jac;
+                Gadgetron::compute_deformation_jacobian(dx2, dy2, mean_deform, max_deform, mean_log_jac, max_log_jac);*/
+
+                memcpy(&moco(0, 0, 0, 0, 0, 0, slc), firstArrayMOCO2.begin(), firstArrayMOCO2.get_number_of_bytes());
+
+                if (!debug_folder_full_path_.empty())
+                {
+                    std::stringstream os;
+                    os << "called_" << process_called_times_ << "_slc" << slc;
+                    std::string str = os.str();
+
+                    gt_exporter_.export_array(target2, debug_folder_full_path_ + "MoCoSashaHC_target2_" + str);
+                    gt_exporter_.export_array(target_moco2, debug_folder_full_path_ + "MoCoSashaHC_target_moco2_" + str);
+
+                    gt_exporter_.export_array(dx2, debug_folder_full_path_ + "MoCoSashaHC_dx2_" + str);
+                    gt_exporter_.export_array(dy2, debug_folder_full_path_ + "MoCoSashaHC_dy2_" + str);
+                    gt_exporter_.export_array_complex(firstArrayMOCO2, debug_folder_full_path_ + "MoCoSashaHC_firstArrayMOCO2_" + str);
+                }
+            }
 
             pFirstN = &(diff_moco(0, 0, 0, 0, 0, 0, slc));
             hoNDArray<T> diffMOCO(RO, E1, N, pFirstN);
-			diffMOCO.copyFrom(target_moco);
+            diffMOCO.copyFrom(target_moco);
 
             if (perform_timing.value()) { gt_timer_local_.stop(); }
 
@@ -187,12 +287,24 @@ namespace Gadgetron {
                 os << "called_" << process_called_times_ << "_slc" << slc;
                 std::string str = os.str();
 
-                gt_exporter_.export_array_complex(firstArrayMOCO, debug_folder_full_path_ + "MoCoSashaHC_firstArray_MOCO_" + str);
-                gt_exporter_.export_array_complex(diffMOCO,       debug_folder_full_path_ + "MoCoSashaHC_diffMag_MOCO_"    + str);
+                hoNDArray<T> data;
+                data = diffMOCO; data.squeeze();
+                gt_exporter_.export_array_complex(data,       debug_folder_full_path_ + "MoCoSashaHC_diffMag_MOCO_"    + str);
 
                 gt_exporter_.export_array(dx, debug_folder_full_path_ + "MoCoSashaHC_dx_" + str);
                 gt_exporter_.export_array(dy, debug_folder_full_path_ + "MoCoSashaHC_dy_" + str);
             }
+        }
+
+        if (!debug_folder_full_path_.empty())
+        {
+            std::stringstream os;
+            os << "called_" << process_called_times_ << "_slc" << slc;
+            std::string str = os.str();
+
+            hoNDArray<T> data;
+            data = moco; data.squeeze();
+            gt_exporter_.export_array_complex(data, debug_folder_full_path_ + "MoCoSashaHC_moco_res_" + str);
         }
 
         GDEBUG_CONDITION_STREAM(verbose.value(), "MoCoSashaHCGadget::process(...) ends ... ");
@@ -289,10 +401,13 @@ namespace Gadgetron {
 				if (send_ori.value())
 				{
                     m1_sasha->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 0, slc);
+                    m1_sasha->getObjectPtr()->headers_(n, 0, slc).image_index = (n + 1) + N * slc;
                     m1_sasha->getObjectPtr()->headers_(n, 0, slc).image_series_index += 0;
 					m1_sasha->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
 
                     m1_sasha->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+0*N+slc*N*S];
+                    m1_sasha->getObjectPtr()->meta_[n + slc * N].set(GADGETRON_DATA_ROLE, "GT");
+                    m1_sasha->getObjectPtr()->meta_[n + slc * N].append(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_REGULAR);
                     m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA");
 
                     m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA");
@@ -300,15 +415,20 @@ namespace Gadgetron {
 
 					m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, ss_ts_time.str().c_str());
                     m1_sasha->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
+
+                    m1_sasha->getObjectPtr()->meta_[n + slc * N].set(GADGETRON_IMAGENUMBER, (long)((n + 1) + N * slc));
 				}
 
 				if (send_moco.value())
 				{
                     m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 0, slc);
-                    m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc).image_series_index += 1;
+                    m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc).image_index = (n + 1) + N * slc;
+                    m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc).image_series_index += 100;
 					m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
 
                     m1_sasha_moco->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+0*N+slc*N*S];
+                    m1_sasha_moco->getObjectPtr()->meta_[n + slc * N].set(GADGETRON_DATA_ROLE, "GT");
+                    m1_sasha_moco->getObjectPtr()->meta_[n + slc * N].append(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_REGULAR);
                     m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA");
                     m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "MOCO");
 
@@ -319,6 +439,8 @@ namespace Gadgetron {
 
                     m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA");
                     m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "MOCO");
+
+                    m1_sasha_moco->getObjectPtr()->meta_[n + slc * N].set(GADGETRON_IMAGENUMBER, (long)((n + 1) + N * slc));
 				}
 
 				if (send_hc.value())
@@ -369,55 +491,55 @@ namespace Gadgetron {
                     m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
 				}
 			}
-
-			// ------------------------------
-			// Enqueue
-			// ------------------------------
-			if (send_ori.value())
-			{
-				if (this->next()->putq(m1_sasha) == -1)
-				{
-					GERROR("MoCoSashaHCGadget::process, passing m1_sasha on to next gadget");
-					return GADGET_FAIL;
-				}
-			}
-
-			if (send_moco.value())
-			{
-				if (this->next()->putq(m1_sasha_moco) == -1)
-				{
-					GERROR("MoCoSashaHCGadget::process, passing m1_sasha_moco on to next gadget");
-					return GADGET_FAIL;
-				}
-			}
-
-			if (send_hc.value())
-			{
-				if (this->next()->putq(m1_sasha_hc) == -1)
-				{
-					GERROR("MoCoSashaHCGadget::process, passing m1_sasha_hc on to next gadget");
-					return GADGET_FAIL;
-				}
-			}
-
-			if (send_diff.value())
-			{
-				if (this->next()->putq(m1_sasha_diff) == -1)
-				{
-					GERROR("MoCoSashaHCGadget::process, passing m1_sasha_diff on to next gadget");
-					return GADGET_FAIL;
-				}
-			}
-
-			if (send_diff.value() && send_moco.value())
-			{
-				if (this->next()->putq(m1_sasha_diff_moco) == -1)
-				{
-					GERROR("MoCoSashaHCGadget::process, passing m1_sasha_diff_moco on to next gadget");
-					return GADGET_FAIL;
-				}
-			}
 		} // slc loop
+
+        // ------------------------------
+        // Enqueue
+        // ------------------------------
+        if (send_ori.value())
+        {
+            if (this->next()->putq(m1_sasha) == -1)
+            {
+                GERROR("MoCoSashaHCGadget::process, passing m1_sasha on to next gadget");
+                return GADGET_FAIL;
+            }
+        }
+
+        if (send_moco.value())
+        {
+            if (this->next()->putq(m1_sasha_moco) == -1)
+            {
+                GERROR("MoCoSashaHCGadget::process, passing m1_sasha_moco on to next gadget");
+                return GADGET_FAIL;
+            }
+        }
+
+        if (send_hc.value())
+        {
+            if (this->next()->putq(m1_sasha_hc) == -1)
+            {
+                GERROR("MoCoSashaHCGadget::process, passing m1_sasha_hc on to next gadget");
+                return GADGET_FAIL;
+            }
+        }
+
+        if (send_diff.value())
+        {
+            if (this->next()->putq(m1_sasha_diff) == -1)
+            {
+                GERROR("MoCoSashaHCGadget::process, passing m1_sasha_diff on to next gadget");
+                return GADGET_FAIL;
+            }
+        }
+
+        if (send_diff.value() && send_moco.value())
+        {
+            if (this->next()->putq(m1_sasha_diff_moco) == -1)
+            {
+                GERROR("MoCoSashaHCGadget::process, passing m1_sasha_diff_moco on to next gadget");
+                return GADGET_FAIL;
+            }
+        }
 
         if (perform_timing.value()) { gt_timer_.stop(); }
 
