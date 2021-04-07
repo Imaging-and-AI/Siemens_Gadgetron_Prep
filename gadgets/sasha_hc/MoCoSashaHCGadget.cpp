@@ -353,6 +353,11 @@ namespace Gadgetron {
 			m1_sasha_diff_moco->getObjectPtr()->meta_.resize(N*1*SLC);
 		}
 
+        if(this->disable_moco.value())
+        {
+            moco = recon_res_->data_;
+        }
+
 		for (slc=0; slc<SLC; slc++)
 		{
 			for (n=0; n<N; n++)

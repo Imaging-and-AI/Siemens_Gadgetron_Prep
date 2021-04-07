@@ -31,6 +31,8 @@ namespace Gadgetron {
         GADGET_PROPERTY(send_hc,   bool, "Whether to send high-contrast images", true);
         GADGET_PROPERTY(send_diff, bool, "Whether to send difference images",    true);
 
+        GADGET_PROPERTY(disable_moco, bool, "disable moco", false);
+
         GADGET_PROPERTY(regularization_hilbert_strength, double, "Hilbert stregth for moco", 12.0);
         GADGET_PROPERTY(bidirectional_moco, bool, "Whether to apply bidirectional moco", true);
 
