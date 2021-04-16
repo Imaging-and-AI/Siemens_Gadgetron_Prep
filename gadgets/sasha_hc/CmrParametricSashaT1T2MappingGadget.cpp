@@ -175,6 +175,12 @@ namespace Gadgetron {
         // some images do not need mapping
         if (data->meta_[0].length(skip_processing_meta_field.value().c_str())>0)
         {
+            for (size_t ii = 0; ii < data->headers_.get_number_of_elements(); ii++)
+            {
+                data->headers_(ii).contrast = 0;
+                GDEBUG_STREAM("ori image " << ii << ", pmu time is " << data->headers_(ii).physiology_time_stamp[0]);
+            }
+
             if (this->next()->putq(m1) == -1)
             {
                 GERROR("CmrParametricSashaT1T2MappingGadget::process, passing incoming image array on to next gadget");
@@ -270,6 +276,13 @@ namespace Gadgetron {
         {
             GWARN("CmrParametricSashaT1T2MappingGadget::process, process incoming data failed ... ");
 
+            for (size_t ii = 0; ii < data->headers_.get_number_of_elements(); ii++)
+            {
+                data->headers_(ii).contrast = 0;
+
+                GDEBUG_STREAM("moco image " << ii << ", pmu time is " << data->headers_(ii).physiology_time_stamp[0]);
+            }
+
             // sending the incoming images
             if (this->next()->putq(m1) == -1)
             {
@@ -300,9 +313,13 @@ namespace Gadgetron {
                         float ts = this->prep_times_ts_[n + s * N];
                         float t2p = this->prep_times_t2p_[n + s * N];
 
+                        m1->getObjectPtr()->headers_(ind).contrast = 0;
+
                         m1->getObjectPtr()->meta_[ind].set(GADGETRON_IMAGE_SATURATIONTIME, (double)ts);
                         m1->getObjectPtr()->meta_[ind].set(GADGETRON_IMAGE_INVERSIONTIME, (double)ts);
                         m1->getObjectPtr()->meta_[ind].set(GADGETRON_IMAGE_ECHOTIME, (double)t2p);
+
+                        GDEBUG_STREAM("moco image " << ind << ", pmu time is " << m1->getObjectPtr()->headers_(ind).physiology_time_stamp[0]);
                     }
                 }
             }
@@ -471,6 +488,10 @@ namespace Gadgetron {
                     {
                         size_t offset = n + s*N + slc*N*S;
 
+                        t1map.headers_[offset].repetition = 0;
+                        t1map.headers_[offset].average = 0;
+                        t1map.headers_[offset].contrast = 0;
+
                         t1map.meta_[offset].set(GADGETRON_IMAGE_SCALE_RATIO,  (double)                     scaling_factor_map.value());
                         t1map.meta_[offset].set(GADGETRON_IMAGE_WINDOWCENTER, (long)(window_center_t1map * scaling_factor_map.value()));
                         t1map.meta_[offset].set(GADGETRON_IMAGE_WINDOWWIDTH,  (long)(window_width_t1map  * scaling_factor_map.value()));
@@ -480,6 +501,12 @@ namespace Gadgetron {
                         t1map.meta_[offset].append(GADGETRON_IMAGECOMMENT, scalingStr.c_str());
                         t1map.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr.c_str());
 
+                        GDEBUG_STREAM("T1 map, pmu time is " << t1map.headers_[offset].physiology_time_stamp[0]);
+
+                        t2map.headers_[offset].repetition = 0;
+                        t2map.headers_[offset].average = 0;
+                        t2map.headers_[offset].contrast = 0;
+
                         t2map.meta_[offset].set(GADGETRON_IMAGE_SCALE_RATIO,  (double)                     scaling_factor_map.value());
                         t2map.meta_[offset].set(GADGETRON_IMAGE_WINDOWCENTER, (long)(window_center_t2map * scaling_factor_map.value()));
                         t2map.meta_[offset].set(GADGETRON_IMAGE_WINDOWWIDTH,  (long)(window_width_t2map  * scaling_factor_map.value()));
@@ -488,6 +515,8 @@ namespace Gadgetron {
                         t2map.meta_[offset].set(   GADGETRON_IMAGECOMMENT, t2map.meta_[offset].as_str(GADGETRON_DATA_ROLE));
                         t2map.meta_[offset].append(GADGETRON_IMAGECOMMENT, scalingStr.c_str());
                         t2map.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr.c_str());
+
+                        GDEBUG_STREAM("T2 map, pmu time is " << t2map.headers_[offset].physiology_time_stamp[0]);
                     }
                 }
             }
@@ -948,6 +977,8 @@ namespace Gadgetron {
                     t1map.headers_(0, s, slc) = data.headers_(0, s, slc);
                     t1map.headers_(0, s, slc).image_index = 1 + slc_ind;
                     t1map.headers_(0, s, slc).image_series_index = 11;
+                    t1map.headers_(0, s, slc).repetition = 0;
+                    t1map.headers_(0, s, slc).average = 0;
                     t1map.meta_[s+slc*S] = data.meta_[s + slc*S];
                     t1map.meta_[s + slc*S].set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_T1MAP);
                     t1map.meta_[s + slc*S].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1MAP);
@@ -957,17 +988,20 @@ namespace Gadgetron {
                     t2map.headers_(0, s, slc) = data.headers_(0, s, slc);
                     t2map.headers_(0, s, slc).image_index = 1 + slc_ind;
                     t2map.headers_(0, s, slc).image_series_index = 12;
+                    t2map.headers_(0, s, slc).repetition = 0;
+                    t2map.headers_(0, s, slc).average = 0;
                     t2map.meta_[s+slc*S] = data.meta_[s + slc*S];
                     t2map.meta_[s + slc*S].set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_T2MAP);
                     t2map.meta_[s + slc*S].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T2MAP);
                     t2map.meta_[s + slc*S].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T2MAP);
-
 
                     if (need_sd_map)
                     {
                         map_sd.headers_(0, s, slc) = data.headers_(0, s, slc);
                         map_sd.headers_(0, s, slc).image_index = 1 + slc_ind;
                         map_sd.headers_(0, s, slc).image_series_index = 13;
+                        map_sd.headers_(0, s, slc).repetition = 0;
+                        map_sd.headers_(0, s, slc).average = 0;
                         map_sd.meta_[s + slc*S] = data.meta_[s + slc*S];
                         map_sd.meta_[s + slc*S].set(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_T1SDMAP);
                         map_sd.meta_[s + slc*S].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1SDMAP);
@@ -978,12 +1012,16 @@ namespace Gadgetron {
                     {
                         para.headers_(p, s, slc) = data.headers_(0, s, slc);
                         para.headers_(p, s, slc).image_index = 1 + p + slc_ind*num_para;
+                        para.headers_(p, s, slc).repetition = 0;
+                        para.headers_(p, s, slc).average = 0;
                         para.meta_[p + s*num_para + slc*num_para*S] = data.meta_[s + slc*S];
 
                         if (need_sd_map)
                         {
                             para_sd.headers_(p, s, slc) = data.headers_(0, s, slc);
                             para_sd.headers_(p, s, slc).image_index = 1 + p + slc_ind*num_para;
+                            para_sd.headers_(p, s, slc).repetition = 0;
+                            para_sd.headers_(p, s, slc).average = 0;
                             para_sd.meta_[p + s*num_para + slc*num_para*S] = data.meta_[s + slc*S];
                         }
                     }
