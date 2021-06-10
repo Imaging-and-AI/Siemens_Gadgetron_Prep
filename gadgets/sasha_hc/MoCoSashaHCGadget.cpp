@@ -60,7 +60,11 @@ namespace Gadgetron {
             }
         }
 
-        if (!has_moco_in_proto) this->do_moco_ = true;
+        if (!has_moco_in_proto)
+        {
+            this->do_moco_ = true;
+            GDEBUG_STREAM("MoCoSashaHCGadget, cannot find MotionCorrection in protocol : " << this->do_moco_);
+        }
 
         return GADGET_OK;
     }
