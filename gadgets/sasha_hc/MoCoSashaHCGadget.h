@@ -55,5 +55,7 @@ namespace Gadgetron {
 
         // close call
         int close(unsigned long flags);
+
+        bool do_moco_;
     };
 }

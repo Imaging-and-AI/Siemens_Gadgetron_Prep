@@ -10,6 +10,7 @@ namespace Gadgetron {
 
     MoCoSashaHCGadget::MoCoSashaHCGadget() : BaseClass()
     {
+        this->do_moco_ = false;
     }
 
     MoCoSashaHCGadget::~MoCoSashaHCGadget()
@@ -38,6 +39,28 @@ namespace Gadgetron {
         iters_[1] = 100;
         iters_[2] = 100;
         iters_[3] = 100;
+
+        bool has_moco_in_proto = false;
+
+        if (h.userParameters->userParameterLong.size() > 0)
+        {
+            std::vector<ISMRMRD::UserParameterLong>::const_iterator iter = h.userParameters->userParameterLong.begin();
+
+            for (; iter != h.userParameters->userParameterLong.end(); iter++)
+            {
+                std::string usrParaName = iter->name;
+                long        usrParaValue = iter->value;
+
+                if (usrParaName == "MotionCorrection")
+                {
+                    this->do_moco_ = true;
+                    has_moco_in_proto = true;
+                    GDEBUG_STREAM("MoCoSashaHCGadget, found MotionCorrection in protocol : " << this->do_moco_);
+                }
+            }
+        }
+
+        if (!has_moco_in_proto) this->do_moco_ = true;
 
         return GADGET_OK;
     }
@@ -353,8 +376,9 @@ namespace Gadgetron {
 			m1_sasha_diff_moco->getObjectPtr()->meta_.resize(N*1*SLC);
 		}
 
-        if(this->disable_moco.value())
+        if(this->disable_moco.value() || !this->do_moco_)
         {
+            GDEBUG_STREAM("Disable moco ...");
             moco = recon_res_->data_;
         }
 
