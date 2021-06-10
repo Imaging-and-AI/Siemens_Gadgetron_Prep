@@ -47,6 +47,7 @@
         <p><s>MEAS.sWipMemBlock.alFree</s>                          <d>siemens.MEAS.sWipMemBlock.alFree</d></p>
         <p><s>MEAS.sWipMemBlock.adFree</s>                          <d>siemens.MEAS.sWipMemBlock.adFree</d></p>
         <p><s>MEAS.sPrepPulses.adT2PrepDuration</s>                 <d>siemens.MEAS.sPrepPulses.adT2PrepDuration</d></p>
+        <p><s>MEAS.ucMotionCorr</s>                                 <d>siemens.MEAS.ucMotionCorr</d></p>
 
         <p><s>IRIS.DERIVED.phaseOversampling</s>                    <d>siemens.IRIS.DERIVED.phaseOversampling</d></p>
         <p><s>IRIS.DERIVED.ImageColumns</s>                         <d>siemens.IRIS.DERIVED.imageColumns</d></p>
