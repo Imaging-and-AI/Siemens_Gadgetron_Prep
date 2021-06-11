@@ -53,7 +53,7 @@ namespace Gadgetron {
 
                 if (usrParaName == "MotionCorrection")
                 {
-                    this->do_moco_ = true;
+                    this->do_moco_ = (usrParaValue>0);
                     has_moco_in_proto = true;
                     GDEBUG_STREAM("MoCoSashaHCGadget, found MotionCorrection in protocol : " << this->do_moco_);
                 }

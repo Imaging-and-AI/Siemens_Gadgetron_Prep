@@ -1200,14 +1200,20 @@
                     </userParameterLong>
                 </xsl:if>
 
-                <xsl:if test="siemens/MEAS/ucMotionCorr">
-                    <userParameterLong>
-                        <name>MotionCorrection</name>
-                        <value>
-                            <xsl:value-of select="siemens/MEAS/ucMotionCorr" />
-                        </value>
-                    </userParameterLong>
-                </xsl:if>
+                <xsl:choose>
+                    <xsl:when test="siemens/MEAS/ucMotionCorr">
+                        <userParameterLong>
+                            <name>MotionCorrection</name>
+                            <value>1</value>
+                        </userParameterLong>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <userParameterLong>
+                            <name>MotionCorrection</name>
+                            <value>0</value>
+                        </userParameterLong>
+                    </xsl:otherwise>
+                </xsl:choose>
 
                 <xsl:if test="siemens/YAPS/aflMaxwellCoefficients[1]">
                   <userParameterDouble>
