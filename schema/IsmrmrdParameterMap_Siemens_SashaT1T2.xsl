@@ -777,7 +777,9 @@
                     <xsl:when test="siemens/MEAS/ucMotionCorr">
                         <userParameterLong>
                             <name>MotionCorrection</name>
-                            <value>1</value>
+                            <value>
+                                <xsl:value-of select="siemens/MEAS/ucMotionCorr" />
+                            </value>
                         </userParameterLong>
                     </xsl:when>
                     <xsl:otherwise>
