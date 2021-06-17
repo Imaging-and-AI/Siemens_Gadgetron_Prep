@@ -33,13 +33,19 @@ namespace Gadgetron {
         GADGET_PROPERTY(anchor_image_index, size_t, "Index for anchor image; by default, the first image is the anchor (without SR pulse)", 0);
         GADGET_PROPERTY(anchor_TS,          double, "Saturation time for anchor",            100000);
 
-        GADGET_PROPERTY(color_lut_map_15T, std::string, "Color lookup table for map at 1.5T", "GadgetronT1_SR_1_5T.pal");
-        GADGET_PROPERTY(color_lut_map_3T, std::string, "Color lookup table for map at 1.5T", "GadgetronT1_SR_3T.pal");
+        GADGET_PROPERTY(color_lut_t1map_15T, std::string, "Color lookup table for t1 map at 1.5T", "GadgetronT1_SR_1_5T.pal");
+        GADGET_PROPERTY(color_lut_t1map_3T, std::string, "Color lookup table for t1 map at 1.5T", "GadgetronT1_SR_3T.pal");
+
+        GADGET_PROPERTY(color_lut_t2map_15T, std::string, "Color lookup table for t2 map at 1.5T", "GadgetronT2_1_5T.pal");
+        GADGET_PROPERTY(color_lut_t2map_3T, std::string, "Color lookup table for t2 map at 1.5T", "GadgetronT2_3T.pal");
 
         GADGET_PROPERTY(window_center_t1map_15T, double, "Window center for T1 map at 1.5T", 1300);
         GADGET_PROPERTY(window_width_t1map_15T,  double, "Window width for T1 map at 1.5T",  1300);
         GADGET_PROPERTY(window_center_t2map_15T, double, "Window center for T2 map at 1.5T",   60);
         GADGET_PROPERTY(window_width_t2map_15T,  double, "Window width for T2 map at 1.5T",   120);
+
+        GADGET_PROPERTY(scaling_factor_t1map, double, "Scale factor for t1map", 1.0);
+        GADGET_PROPERTY(scaling_factor_t2map, double, "Scale factor for t1map", 1.0);
 
         GADGET_PROPERTY(window_center_t1map_3T, double, "Window center for T1 map at 3T",    1250);
         GADGET_PROPERTY(window_width_t1map_3T,  double, "Window width for T1 map at 3T",     2500);

@@ -266,25 +266,6 @@
         <property><name>send_map</name><value>true</value></property>
         <property><name>send_sd_map</name><value>false</value></property>
 
-        <property><name>color_lut_map_15T</name><value>MicroDeltaHotMetal.pal</value></property>
-        <property><name>window_center_t1map_15T</name><value>1300</value></property>
-        <property><name>window_width_t1map_15T</name><value>1300</value></property>
-        <property><name>window_center_t2map_15T</name><value>60</value></property>
-        <property><name>window_width_t2map_15T</name><value>120</value></property>
-
-        <property><name>color_lut_map_3T</name><value>MicroDeltaHotMetal.pal</value></property>
-        <property><name>window_center_t1map_3T</name><value>1250</value></property>
-        <property><name>window_width_t1map_3T</name><value>2500</value></property>
-        <property><name>window_center_t2map_3T</name><value>60</value></property>
-        <property><name>window_width_t2map_3T</name><value>120</value></property>
-
-        <property><name>scaling_factor_map</name><value>1.0</value></property>
-
-        <property><name>color_lut_sd_map</name><value>MicroDeltaHotMetal.pal</value></property>
-        <property><name>window_center_sd_map</name><value>2.0</value></property>
-        <property><name>window_width_sd_map</name><value>4.0</value></property>
-        <property><name>scaling_factor_sd_map</name><value>100.0</value></property>
-
         <property><name>perform_hole_filling</name><value>true</value></property>
         <property><name>max_size_hole</name><value>20</value></property>
 

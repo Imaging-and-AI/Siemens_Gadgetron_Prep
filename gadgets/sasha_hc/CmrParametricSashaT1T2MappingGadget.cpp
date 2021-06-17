@@ -457,7 +457,8 @@ namespace Gadgetron {
 
             size_t e2, cha, n, s, slc;
 
-            std::string lut            = color_lut_map_15T.value();
+            std::string lut_t1map      = color_lut_t1map_15T.value();
+            std::string lut_t2map = color_lut_t2map_15T.value();
             double window_center_t1map = window_center_t1map_15T.value();
             double window_width_t1map  = window_width_t1map_15T.value();
             double window_center_t2map = window_center_t2map_15T.value();
@@ -465,7 +466,8 @@ namespace Gadgetron {
 
             if (this->field_strength_T_ > 2)
             {
-                lut = color_lut_map_3T.value();
+                lut_t1map = color_lut_t1map_3T.value();
+                lut_t2map = color_lut_t2map_3T.value();
                 window_center_t1map = window_center_t1map_3T.value();
                 window_width_t1map  = window_width_t1map_3T.value();
                 window_center_t2map = window_center_t2map_3T.value();
@@ -473,12 +475,20 @@ namespace Gadgetron {
             }
 
             std::ostringstream ostr;
-            ostr << "x" << (double)scaling_factor_map.value();
-            std::string scalingStr = ostr.str();
+            ostr << "x" << (double)scaling_factor_t1map.value();
+            std::string scalingStr_t1map = ostr.str();
 
             std::ostringstream ostr_unit;
-            ostr_unit << std::setprecision(3) << 1.0f / scaling_factor_map.value() << "ms";
-            std::string unitStr = ostr_unit.str();
+            ostr_unit << std::setprecision(3) << 1.0f / scaling_factor_t1map.value() << "ms";
+            std::string unitStr_t1map = ostr_unit.str();
+
+            std::ostringstream ostr_t2map;
+            ostr_t2map << "x" << (double)scaling_factor_t2map.value();
+            std::string scalingStr_t2map = ostr_t2map.str();
+
+            std::ostringstream ostr_unit_t2map;
+            ostr_unit_t2map << std::setprecision(3) << 1.0f / scaling_factor_t2map.value() << "ms";
+            std::string unitStr_t2map = ostr_unit_t2map.str();
 
             for (slc = 0; slc < SLC; slc++)
             {
@@ -492,14 +502,17 @@ namespace Gadgetron {
                         t1map.headers_[offset].average = 0;
                         t1map.headers_[offset].contrast = 0;
 
-                        t1map.meta_[offset].set(GADGETRON_IMAGE_SCALE_RATIO,  (double)                     scaling_factor_map.value());
-                        t1map.meta_[offset].set(GADGETRON_IMAGE_WINDOWCENTER, (long)(window_center_t1map * scaling_factor_map.value()));
-                        t1map.meta_[offset].set(GADGETRON_IMAGE_WINDOWWIDTH,  (long)(window_width_t1map  * scaling_factor_map.value()));
-                        t1map.meta_[offset].set(GADGETRON_IMAGE_COLORMAP,     lut.c_str());
+                        t1map.meta_[offset].set(GADGETRON_IMAGE_SCALE_RATIO,  (double)                     scaling_factor_t1map.value());
+                        t1map.meta_[offset].set(GADGETRON_IMAGE_WINDOWCENTER, (long)(window_center_t1map * scaling_factor_t1map.value()));
+                        t1map.meta_[offset].set(GADGETRON_IMAGE_WINDOWWIDTH,  (long)(window_width_t1map  * scaling_factor_t1map.value()));
+                        t1map.meta_[offset].set(GADGETRON_IMAGE_COLORMAP,     lut_t1map.c_str());
 
                         t1map.meta_[offset].set(   GADGETRON_IMAGECOMMENT, t1map.meta_[offset].as_str(GADGETRON_DATA_ROLE));
-                        t1map.meta_[offset].append(GADGETRON_IMAGECOMMENT, scalingStr.c_str());
-                        t1map.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr.c_str());
+                        t1map.meta_[offset].append(GADGETRON_IMAGECOMMENT, scalingStr_t1map.c_str());
+                        t1map.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr_t1map.c_str());
+
+                        t1map.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1MAP);
+                        t1map.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T1MAP);
 
                         GDEBUG_STREAM("T1 map, pmu time is " << t1map.headers_[offset].physiology_time_stamp[0]);
 
@@ -507,21 +520,24 @@ namespace Gadgetron {
                         t2map.headers_[offset].average = 0;
                         t2map.headers_[offset].contrast = 0;
 
-                        t2map.meta_[offset].set(GADGETRON_IMAGE_SCALE_RATIO,  (double)                     scaling_factor_map.value());
-                        t2map.meta_[offset].set(GADGETRON_IMAGE_WINDOWCENTER, (long)(window_center_t2map * scaling_factor_map.value()));
-                        t2map.meta_[offset].set(GADGETRON_IMAGE_WINDOWWIDTH,  (long)(window_width_t2map  * scaling_factor_map.value()));
-                        t2map.meta_[offset].set(GADGETRON_IMAGE_COLORMAP,     lut.c_str());
+                        t2map.meta_[offset].set(GADGETRON_IMAGE_SCALE_RATIO,  (double)                     scaling_factor_t2map.value());
+                        t2map.meta_[offset].set(GADGETRON_IMAGE_WINDOWCENTER, (long)(window_center_t2map * scaling_factor_t2map.value()));
+                        t2map.meta_[offset].set(GADGETRON_IMAGE_WINDOWWIDTH,  (long)(window_width_t2map  * scaling_factor_t2map.value()));
+                        t2map.meta_[offset].set(GADGETRON_IMAGE_COLORMAP,     lut_t2map.c_str());
 
                         t2map.meta_[offset].set(   GADGETRON_IMAGECOMMENT, t2map.meta_[offset].as_str(GADGETRON_DATA_ROLE));
-                        t2map.meta_[offset].append(GADGETRON_IMAGECOMMENT, scalingStr.c_str());
-                        t2map.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr.c_str());
+                        t2map.meta_[offset].append(GADGETRON_IMAGECOMMENT, scalingStr_t2map.c_str());
+                        t2map.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr_t2map.c_str());
+
+                        t2map.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T2MAP);
+                        t2map.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T2MAP);
 
                         GDEBUG_STREAM("T2 map, pmu time is " << t2map.headers_[offset].physiology_time_stamp[0]);
                     }
                 }
             }
-            Gadgetron::scal( (float)(scaling_factor_map.value()), t1map.data_);
-            Gadgetron::scal( (float)(scaling_factor_map.value()), t2map.data_);
+            Gadgetron::scal( (float)(scaling_factor_t1map.value()), t1map.data_);
+            Gadgetron::scal( (float)(scaling_factor_t2map.value()), t2map.data_);
         }
         catch (...)
         {
