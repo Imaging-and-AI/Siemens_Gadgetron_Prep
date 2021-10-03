@@ -1548,6 +1548,15 @@
                   </userParameterDouble>
                 </xsl:if>
 
+                <xsl:if test="siemens/MEAS/sWipMemBlock/adFree[3]">
+                  <userParameterDouble>
+                      <name>HCT</name>
+                      <value>
+                          <xsl:value-of select="siemens/MEAS/sWipMemBlock/adFree[3]" />
+                      </value>
+                  </userParameterDouble>
+                </xsl:if>
+                
                 <xsl:if test="siemens/YAPS/flContrastBolusVolume">
                     <userParameterDouble>
                         <name>ContrastBolusVolume</name>
