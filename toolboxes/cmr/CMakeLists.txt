@@ -14,6 +14,8 @@ include_directories(${CMAKE_SOURCE_DIR}
 set( application_header_files
     application/cmr_sasha_t1_t2_mapping.h
     application/cmr_multi_parametric_mapping.h
+    application/jointSashaT1T2RecoveryOperator.h
+    application/jointSashaT1T2T1pRecoveryOperator.h
     )
 
 set( application_src_files 

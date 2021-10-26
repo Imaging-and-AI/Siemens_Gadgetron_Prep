@@ -45,6 +45,8 @@ set( config_schema_files
     ../../schema/IsmrmrdParameterMap_Siemens_SashaT1T2.xsl
     ../../schema/IsmrmrdParameterMap_Siemens_SashaT1T2_HC.xml
     ../../schema/IsmrmrdParameterMap_Siemens_SashaT1T2_HC.xsl
+    ../../schema/IsmrmrdParameterMap_Siemens_SashaT1T2T1p_HC.xml
+    ../../schema/IsmrmrdParameterMap_Siemens_SashaT1T2T1p_HC.xsl
     )
 
 set( sasha_hc_header_files 
