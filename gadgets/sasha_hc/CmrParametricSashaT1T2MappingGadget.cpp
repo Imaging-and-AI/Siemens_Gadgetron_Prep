@@ -569,7 +569,7 @@ namespace Gadgetron {
                             t1pmap.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1RHOMAP);
                             t1pmap.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T1RHOMAP);
 
-                            t1pmap.meta_[offset].append(GADGETRON_IMAGE_INTENSITY_UNCHANGED, 1);
+                            t1pmap.meta_[offset].append(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_INTENSITY_UNCHANGED);
 
                             GDEBUG_STREAM("T1rho map, pmu time is " << t1pmap.headers_[offset].physiology_time_stamp[0]);
                         }

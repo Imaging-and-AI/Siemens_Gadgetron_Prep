@@ -51,7 +51,7 @@ namespace Gadgetron {
         // b[2] is T2
         // b[3] is T1p
 
-        GADGET_THROW("jointSashaT1T2T1pRecoveryOperator<ARRAY>::magnitude(...) is not yet implemented ...");
+        // GADGET_THROW("jointSashaT1T2T1pRecoveryOperator<ARRAY>::magnitude(...) is not yet implemented ...");
 
         // x is a vector containing TS, TE, TSL, time-t2p-to-center, and T2p duration, of size 4N+1, where N is the size of y.
         // For the 'i'th measurement in y:
