@@ -72,18 +72,16 @@ namespace Gadgetron {
         // variables for protocol
         // --------------------------------------------------
 
-        // saturation recovery / T2 prep times
+        // saturation recovery / T2 / T1rho prep times
         std::vector<float> prep_times_ts_;
         std::vector<float> prep_times_t2p_;
-        // for T1rho
         std::vector<float> prep_times_t1p_;
 
         float              time_t2p_to_center_kspace_;
-        float              t2p_rf_duration_;
+        std::vector<float> t2p_rf_duration_;
 
         size_t             num_rep_;
 
-        float              t1p_prep_duration_;
         bool               has_t1p_mapping_;
 
         // --------------------------------------------------

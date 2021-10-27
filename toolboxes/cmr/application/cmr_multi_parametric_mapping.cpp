@@ -346,19 +346,27 @@ void CmrMultiParametricMapping<T>::perform_parametric_mapping()
                             {
                                 std::ostringstream ostrTS;
                                 std::ostringstream ostrT2p;
+                                std::ostringstream ostrT1p;
+                                std::ostringstream ostrT2pDur;
                                 std::ostringstream ostrY;
-                                ostrTS  << "TS:    " <<                                       std::setw(5) <<  ti_[0];
-                                ostrT2p << "T2p:   " <<                                       std::setw(5) <<  ti_[0+(ti_.size()-1)/2];
-                                ostrY   << "Y:     " << std::fixed << std::setprecision(0) << std::setw(5) <<  yi[ 0];
+                                ostrTS     << "TS:     " <<                                       std::setw(5) <<  ti_[0];
+                                ostrT2p    << "T2p:    " <<                                       std::setw(5) <<  ti_[0+(ti_.size()-1)/4];
+                                ostrT1p    << "T1p:    " <<                                       std::setw(5) <<  ti_[0+(ti_.size()-1)/4*2];
+                                ostrT2pDur << "T2pDur: " <<                                       std::setw(5) <<  ti_[0+(ti_.size()-1)/4*3];
+                                ostrY      << "Y:      " << std::fixed << std::setprecision(0) << std::setw(5) <<  yi[ 0];
                                 for (size_t n = 0; n < (ti_.size()-1)/2; n++)
                                 {
-                                    ostrTS  << " " <<                                       std::setw(4) <<  ti_[n];
-                                    ostrT2p << " " <<                                       std::setw(4) <<  ti_[n+(ti_.size()-1)/2];
-                                    ostrY   << " " << std::fixed << std::setprecision(0) << std::setw(4) <<  yi[ n];
+                                    ostrTS     << " " <<                                       std::setw(4) <<  ti_[n];
+                                    ostrT2p    << " " <<                                       std::setw(4) <<  ti_[n+(ti_.size()-1)/4];
+                                    ostrT1p    << " " <<                                       std::setw(4) <<  ti_[n+(ti_.size()-1)/4*2];
+                                    ostrT2pDur << " " <<                                       std::setw(4) <<  ti_[n+(ti_.size()-1)/4*3];
+                                    ostrY      << " " << std::fixed << std::setprecision(0) << std::setw(4) <<  yi[ n];
                                 }
                                 GDEBUG_STREAM("----- Pixel offset " << offset << " -----");
                                 GDEBUG_STREAM(ostrTS.str());
                                 GDEBUG_STREAM(ostrT2p.str());
+                                GDEBUG_STREAM(ostrT1p.str());
+                                GDEBUG_STREAM(ostrT2pDur.str());
                                 GDEBUG_STREAM(ostrY.str());
                                 GDEBUG_STREAM("del:   " << std::fixed << std::setprecision(0) << std::setw(4) << ti_[ti_.size()-1]);
                                 GDEBUG_STREAM("start: " << std::fixed << std::setprecision(0) << std::setw(4) << guess[0] << " " << guess[1] << " " << guess[2]);
