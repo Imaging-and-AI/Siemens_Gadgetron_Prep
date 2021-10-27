@@ -58,11 +58,13 @@ namespace Gadgetron {
         // Each image in the set must have a prep time
         // this->prep_times_ts_.resize( this->meas_max_idx_.set + 1);
         // this->prep_times_t2p_.resize(this->meas_max_idx_.set + 1);
-        this->prep_times_ts_.resize( (this->meas_max_idx_.set + 1) * (num_rep_));
-        this->prep_times_t2p_.resize((this->meas_max_idx_.set + 1) * (num_rep_));
-        this->prep_times_t1p_.resize((this->meas_max_idx_.set + 1) * (num_rep_));
+        this->prep_times_ts_.resize(  (this->meas_max_idx_.set + 1) * (num_rep_));
+        this->prep_times_t2p_.resize( (this->meas_max_idx_.set + 1) * (num_rep_));
+        this->prep_times_t1p_.resize( (this->meas_max_idx_.set + 1) * (num_rep_));
+        this->t2p_rf_duration_.resize((this->meas_max_idx_.set + 1) * (num_rep_));
 
         this->time_t2p_to_center_kspace_ = 0;
+        float t2p_rf_duration_old = 0.0; // Backwards compatibility with old data with only a single T2p duration
 
         //if (this->imaging_prep_time_from_protocol.value())
         {
@@ -86,23 +88,10 @@ namespace Gadgetron {
                     std::string strT2pRfDuration("T2pRfDuration");
                     if (usrParaName == strT2pRfDuration)
                     {
-                        this->t2p_rf_duration_ = (float)usrParaValue;
-                        GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, found T2p RF duration : " << this->t2p_rf_duration_);
-                    }
-
-                    std::string strT1pPrepDuration("T1pPrepDuration_1");
-                    if (usrParaName == strT1pPrepDuration)
-                    {
-                        this->t1p_prep_duration_ = (float)usrParaValue;
-                        has_t1p_mapping_ = true;
-                        GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, found T1rho prep duration : " << this->t1p_prep_duration_);
+                        t2p_rf_duration_old = (float)usrParaValue;
+                        GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, found single T2p RF duration (old format) : " << t2p_rf_duration_old);
                     }
                 }
-            }
-
-            if(!has_t1p_mapping_)
-            {
-                GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, CANNOT find T1rho prep duration ... ");
             }
 
             // First SASHA image is an anchor unless otherwise specified
@@ -112,9 +101,10 @@ namespace Gadgetron {
 
             // Read in T1 and T2 prep times
             // FIXME: This doesn't allow for the first image to be T2p or SR
-            size_t iT1 = 1;
-            size_t iT2 = 1;
-            size_t iT1p = 1;
+            size_t iT1    = 1;
+            size_t iT2    = 1;
+            size_t iT1p   = 1;
+            size_t iT2pRf = 1;
             if (h.userParameters->userParameterDouble.size() > 0)
             {
                 std::vector<ISMRMRD::UserParameterDouble>::const_iterator iter = h.userParameters->userParameterDouble.begin();
@@ -124,10 +114,11 @@ namespace Gadgetron {
                     std::string usrParaName  = iter->name;
                     double      usrParaValue = iter->value;
 
-                    std::stringstream strT1, strT2, strT1p;
-                    strT1 << "SatRecTime_"     << iT1;
-                    strT2 << "T2PrepDuration_" << iT2;
-                    strT1p << "T1pPrepDuration_" << iT1p;
+                    std::stringstream strT1, strT2, strT1p, strT2pRfDuration;
+                    strT1            << "SatRecTime_"      << iT1;
+                    strT2            << "T2PrepDuration_"  << iT2;
+                    strT1p           << "T1pPrepDuration_" << iT1p;
+                    strT2pRfDuration << "T2pRfDuration_"   << iT2pRf;
 
                     GDEBUG_STREAM("Searching for " << strT1.str() << " and "<< strT2.str() << " and " << strT1p.str());
 
@@ -170,7 +161,43 @@ namespace Gadgetron {
                         }
                         iT1p++;
                     }
+                    else if (usrParaName == strT2pRfDuration.str() && iT2pRf <= this->meas_max_idx_.set)
+                    {
+                        GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, found T2p RF duration : " << iT2pRf << " - " << usrParaValue);
+                        for (size_t i = 0; i < num_rep_; i++)
+                        {
+                            size_t ind = iT2pRf + i * (this->meas_max_idx_.set + 1);
+                            if (ind < this->t2p_rf_duration_.size())
+                            {
+                                this->t2p_rf_duration_[iT2pRf + i * (this->meas_max_idx_.set + 1)] = (float)usrParaValue;
+                            }
+                        }
+                        iT2pRf++;
+                    }
                 }
+            }
+
+            // Populate t2p_rf_duration_ with old format data where only a single value was exported
+            for (size_t i = 0; i < this->t2p_rf_duration_.size(); i++)
+            {
+                if (this->prep_times_t2p_[i] > 0)
+                {
+                    this->t2p_rf_duration_[i] = t2p_rf_duration_old;
+                }
+            }
+
+            // Check if there are any images with T1rho prep
+            for (size_t i = 0; i < this->prep_times_t1p_.size(); i++)
+            {
+                if (this->prep_times_t1p_[i] > 0)
+                {
+                    has_t1p_mapping_ = true;
+                }
+            }
+
+            if (!has_t1p_mapping_)
+            {
+                GDEBUG_STREAM("CmrParametricSashaT1T2MappingGadget, CANNOT find T1rho prep duration ... ");
             }
         }
 
@@ -284,13 +311,15 @@ namespace Gadgetron {
                 this->prep_times_ts_[n] = data->headers_(n).user_int[7] * 1e-3; // convert microsecond to ms
                 GDEBUG_STREAM("Image "   <<                                       std::setw(2) << n
                            << ": TS = "  << std::fixed << std::setprecision(1) << std::setw(6) << this->prep_times_ts_[n]  << "* ms "
-                           << ", T2p = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t2p_[n] << " ms ");
+                           << ", T2p = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t2p_[n] << " ms "
+                           << ", TSL = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t1p_[n] << " ms ");
             }
             else
             {
                 GDEBUG_STREAM("Image "   <<                                       std::setw(2) << n
                            << ": TS = "  << std::fixed << std::setprecision(1) << std::setw(6) << this->prep_times_ts_[n]  << "  ms "
-                           << ", T2p = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t2p_[n] << " ms ");
+                           << ", T2p = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t2p_[n] << " ms "
+                           << ", TSL = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t1p_[n] << " ms ");
             }
         }
 
@@ -1118,12 +1147,19 @@ namespace Gadgetron {
             t1t2t1p_sasha.max_size_of_holes_ = max_size_hole.value();
             t1t2t1p_sasha.compute_SD_maps_ = need_sd_map;
 
-            t1t2t1p_sasha.ti_.resize(N * 3 + 2, 0);
-            memcpy(&(t1t2t1p_sasha.ti_)[0], &this->prep_times_ts_[0], sizeof(float) * N);
-            memcpy(&(t1t2t1p_sasha.ti_)[N], &this->prep_times_t2p_[0], sizeof(float) * N);
-            memcpy(&(t1t2t1p_sasha.ti_)[2 * N], &this->prep_times_t1p_[0], sizeof(float) * N);
-            memcpy(&(t1t2t1p_sasha.ti_)[N * 3], &this->t2p_rf_duration_, sizeof(float) * 1);
-            memcpy(&(t1t2t1p_sasha.ti_)[N * 3 + 1], &this->time_t2p_to_center_kspace_, sizeof(float) * 1);
+            // ti_ is a vector containing TS, TE, TSL, time-t2p-to-center, and T2p duration, of size 4N+1, where N is the size of y.
+            // For the 'i'th measurement in y:
+            //   x[i]     is the sat recovery time
+            //   x[i+ N]  is the T2p time
+            //   x[i+2N]  is the T1p time
+            //   x[i+3N]  is the t2pRfDuration
+            //   x[end]   is the timeT2pToCenter
+            t1t2t1p_sasha.ti_.resize(N*4 + 1, 0);
+            memcpy(&(t1t2t1p_sasha.ti_)[0],     &this->prep_times_ts_[  0],        sizeof(float) * N);
+            memcpy(&(t1t2t1p_sasha.ti_)[N],     &this->prep_times_t2p_[ 0],        sizeof(float) * N);
+            memcpy(&(t1t2t1p_sasha.ti_)[N*2],   &this->prep_times_t1p_[ 0],        sizeof(float) * N);
+            memcpy(&(t1t2t1p_sasha.ti_)[N*3],   &this->t2p_rf_duration_[0],        sizeof(float) * N);
+            memcpy(&(t1t2t1p_sasha.ti_)[N*4+1], &this->time_t2p_to_center_kspace_, sizeof(float) * 1);
 
             if (this->verbose.value())
             {
