@@ -63,8 +63,8 @@ namespace Gadgetron {
         GADGET_PROPERTY(window_width_t1pmap_3T, double, "Window width for T1p map at 3T",       120);
 
         GADGET_PROPERTY(scaling_factor_t1map, double, "Scale factor for t1map", 1.0);
-        GADGET_PROPERTY(scaling_factor_t2map, double, "Scale factor for t1map", 1.0);
-        GADGET_PROPERTY(scaling_factor_t1pmap, double, "Scale factor for t1pmap", 1.0);
+        GADGET_PROPERTY(scaling_factor_t2map, double, "Scale factor for t1map", 10.0);
+        GADGET_PROPERTY(scaling_factor_t1pmap, double, "Scale factor for t1pmap", 10.0);
 
     protected:
 
