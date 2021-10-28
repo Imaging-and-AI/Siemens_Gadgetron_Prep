@@ -349,12 +349,12 @@ void CmrMultiParametricMapping<T>::perform_parametric_mapping()
                                 std::ostringstream ostrT1p;
                                 std::ostringstream ostrT2pDur;
                                 std::ostringstream ostrY;
-                                ostrTS     << "TS:     " <<                                       std::setw(5) <<  ti_[0];
-                                ostrT2p    << "T2p:    " <<                                       std::setw(5) <<  ti_[0+(ti_.size()-1)/4];
-                                ostrT1p    << "T1p:    " <<                                       std::setw(5) <<  ti_[0+(ti_.size()-1)/4*2];
-                                ostrT2pDur << "T2pDur: " <<                                       std::setw(5) <<  ti_[0+(ti_.size()-1)/4*3];
-                                ostrY      << "Y:      " << std::fixed << std::setprecision(0) << std::setw(5) <<  yi[ 0];
-                                for (size_t n = 0; n < (ti_.size()-1)/2; n++)
+                                ostrTS     << "TS:     " << std::fixed << std::setprecision(0) << std::setw(8) <<  ti_[0];
+                                ostrT2p    << "T2p:    " << std::fixed << std::setprecision(0) << std::setw(8) <<  ti_[0+(ti_.size()-1)/4];
+                                ostrT1p    << "T1p:    " << std::fixed << std::setprecision(0) << std::setw(8) <<  ti_[0+(ti_.size()-1)/4*2];
+                                ostrT2pDur << "T2pDur: " << std::fixed << std::setprecision(0) << std::setw(8) <<  ti_[0+(ti_.size()-1)/4*3];
+                                ostrY      << "Y:      " << std::fixed << std::setprecision(0) << std::setw(8) <<  yi[ 0];
+                                for (size_t n = 1; n < (ti_.size()-1)/4; n++)
                                 {
                                     ostrTS     << " " <<                                       std::setw(4) <<  ti_[n];
                                     ostrT2p    << " " <<                                       std::setw(4) <<  ti_[n+(ti_.size()-1)/4];

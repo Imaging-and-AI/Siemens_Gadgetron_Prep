@@ -120,7 +120,7 @@ namespace Gadgetron {
                     strT1p           << "T1pPrepDuration_" << iT1p;
                     strT2pRfDuration << "T2pRfDuration_"   << iT2pRf;
 
-                    GDEBUG_STREAM("Searching for " << strT1.str() << " and "<< strT2.str() << " and " << strT1p.str());
+                    // GDEBUG_STREAM("Searching for " << strT1.str() << " and "<< strT2.str() << " and " << strT1p.str());
 
                     if (usrParaName == strT1.str() && iT1 <= this->meas_max_idx_.set)
                     {
@@ -569,7 +569,7 @@ namespace Gadgetron {
                             t1pmap.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1RHOMAP);
                             t1pmap.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T1RHOMAP);
 
-                            t1pmap.meta_[offset].append(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_INTENSITY_UNCHANGED);
+                            t1pmap.meta_[offset].append(GADGETRON_IMAGE_INTENSITY_UNCHANGED, (long)1);
 
                             GDEBUG_STREAM("T1rho map, pmu time is " << t1pmap.headers_[offset].physiology_time_stamp[0]);
                         }
@@ -1159,7 +1159,7 @@ namespace Gadgetron {
             memcpy(&(t1t2t1p_sasha.ti_)[N],     &this->prep_times_t2p_[ 0],        sizeof(float) * N);
             memcpy(&(t1t2t1p_sasha.ti_)[N*2],   &this->prep_times_t1p_[ 0],        sizeof(float) * N);
             memcpy(&(t1t2t1p_sasha.ti_)[N*3],   &this->t2p_rf_duration_[0],        sizeof(float) * N);
-            memcpy(&(t1t2t1p_sasha.ti_)[N*4+1], &this->time_t2p_to_center_kspace_, sizeof(float) * 1);
+            memcpy(&(t1t2t1p_sasha.ti_)[N*4],   &this->time_t2p_to_center_kspace_, sizeof(float) * 1);
 
             if (this->verbose.value())
             {
@@ -1263,6 +1263,11 @@ namespace Gadgetron {
             Gadgetron::clear(t2map.data_);
             t2map.headers_.create(1, S, SLC);
             t2map.meta_.resize(S * SLC);
+
+            t1pmap.data_.create(RO, E1, E2, CHA, 1, S, SLC);
+            Gadgetron::clear(t1pmap.data_);
+            t1pmap.headers_.create(1, S, SLC);
+            t1pmap.meta_.resize(S * SLC);
 
             para.data_.create(RO, E1, E2, CHA, num_para, S, SLC);
             Gadgetron::clear(para.data_);
