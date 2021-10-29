@@ -135,42 +135,45 @@ namespace Gadgetron {
         // b[1] is T1
         // b[2] is T2
 
-        // x is a vector containing TS, T2p, time-t2p-to-center, and T2p duration, of size 2N+2, where N is the size of y.
+        // x is a vector containing TS, TE, TSL, time-t2p-to-center, and T2p duration, of size 4N+1, where N is the size of y.
         // For the 'i'th measurement in y:
         //   x[i]     is the sat recovery time
-        //   x[i+N]   is the T2p time
-        //   x[end-1] is the timeT2pToCenter
-        //   x[end]   is the t2pRfDuration
-        ARRAY ts, te;
-        ELEMENT_TYPE timeT2pToCenter, t2pRfDuration;
+        //   x[i+ N]  is the T2p time
+        //   x[i+2N]  is the T1p time
+        //   x[i+3N]  is the t2pRfDuration
+        //   x[end]   is the timeT2pToCenter
 
-        size_t num = (x.size()-2)/2;
+        ARRAY ts, te, tsl, t2pRfDuration;
+        ELEMENT_TYPE timeT2pToCenter;
+
+        size_t num = (x.size()-1)/4;
 
         if (y.size()!=num)
         {
             y.resize(num, 0);
         }
-        ts.resize(num, 0);
-        te.resize(num, 0);
+        ts.resize(           num, 0);
+        te.resize(           num, 0);
+        tsl.resize(          num, 0);
+        t2pRfDuration.resize(num, 0);
 
         for (size_t i=0; i<num; i++)
         {
-            ts[i] = x[i];
-            te[i] = x[i+num];
+            ts[           i] = x[i];
+            te[           i] = x[i+num];
+            tsl[          i] = x[i+num*2];
+            t2pRfDuration[i] = x[i+num*3];
         }
-        t2pRfDuration   = x[2*num];
-        timeT2pToCenter = x[2*num+1];
+        timeT2pToCenter = x[4*num+1];
 
         for (size_t i=0; i<num; i++)
         {
             // Correct TS values for time to center
             ts[i] -= timeT2pToCenter;
 
-            // For T2p images, subtract the duration of the T2p itself, as no T1 recovery is happening during this time (mostly)
-            if (te[i] != 0)
-            {
-                ts[i] -= t2pRfDuration;
-            }
+            // Subtract the duration of the T2p itself, as no T1 recovery is happening during this time (mostly)
+            // (This value is 0 for images with T2p or T1p)
+            ts[i] -= t2pRfDuration[i];
         }
 
         // Ignore changes in reciprocal of T1/T2 below a certain threshold

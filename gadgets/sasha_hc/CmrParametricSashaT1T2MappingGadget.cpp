@@ -876,11 +876,26 @@ namespace Gadgetron {
             t1t2_sasha.max_size_of_holes_  = max_size_hole.value();
             t1t2_sasha.compute_SD_maps_    = need_sd_map;
 
-            t1t2_sasha.ti_.resize(N*2+2, 0);
-            memcpy(&(t1t2_sasha.ti_)[0],     &this->prep_times_ts_[0],          sizeof(float)*N);
-            memcpy(&(t1t2_sasha.ti_)[N],     &this->prep_times_t2p_[0],         sizeof(float)*N);
-            memcpy(&(t1t2_sasha.ti_)[N*2],   &this->t2p_rf_duration_,           sizeof(float)*1);
-            memcpy(&(t1t2_sasha.ti_)[N*2+1], &this->time_t2p_to_center_kspace_, sizeof(float)*1);
+            // t1t2_sasha.ti_.resize(N*2+2, 0);
+            // memcpy(&(t1t2_sasha.ti_)[0],     &this->prep_times_ts_[0],          sizeof(float)*N);
+            // memcpy(&(t1t2_sasha.ti_)[N],     &this->prep_times_t2p_[0],         sizeof(float)*N);
+            // memcpy(&(t1t2_sasha.ti_)[N*2],   &this->t2p_rf_duration_,           sizeof(float)*1);
+            // memcpy(&(t1t2_sasha.ti_)[N*2+1], &this->time_t2p_to_center_kspace_, sizeof(float)*1);
+
+            // ti_ is a vector containing TS, TE, TSL, time-t2p-to-center, and T2p duration, of size 4N+1, where N is the size of y.
+            // For the 'i'th measurement in y:
+            //   x[i]     is the sat recovery time
+            //   x[i+ N]  is the T2p time
+            //   x[i+2N]  is the T1p time
+            //   x[i+3N]  is the t2pRfDuration
+            //   x[end]   is the timeT2pToCenter
+            t1t2_sasha.ti_.resize(N*4 + 1, 0);
+            memcpy(&(t1t2_sasha.ti_)[0],     &this->prep_times_ts_[  0],        sizeof(float) * N);
+            memcpy(&(t1t2_sasha.ti_)[N],     &this->prep_times_t2p_[ 0],        sizeof(float) * N);
+            memcpy(&(t1t2_sasha.ti_)[N*2],   &this->prep_times_t1p_[ 0],        sizeof(float) * N);
+            memcpy(&(t1t2_sasha.ti_)[N*3],   &this->t2p_rf_duration_[0],        sizeof(float) * N);
+            memcpy(&(t1t2_sasha.ti_)[N*4],   &this->time_t2p_to_center_kspace_, sizeof(float) * 1);
+
 
             if (this->verbose.value())
             {
