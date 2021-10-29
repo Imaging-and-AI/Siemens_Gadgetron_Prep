@@ -527,8 +527,8 @@ namespace Gadgetron {
                         t1map.meta_[offset].append(GADGETRON_IMAGECOMMENT, scalingStr_t1map.c_str());
                         t1map.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr_t1map.c_str());
 
-                        t1map.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1MAP);
-                        t1map.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T1MAP);
+                        // t1map.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1MAP);
+                        // t1map.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T1MAP);
 
                         GDEBUG_STREAM("T1 map, pmu time is " << t1map.headers_[offset].physiology_time_stamp[0]);
 
@@ -545,8 +545,8 @@ namespace Gadgetron {
                         t2map.meta_[offset].append(GADGETRON_IMAGECOMMENT, scalingStr_t2map.c_str());
                         t2map.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr_t2map.c_str());
 
-                        t2map.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T2MAP);
-                        t2map.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T2MAP);
+                        // t2map.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T2MAP);
+                        // t2map.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T2MAP);
 
                         GDEBUG_STREAM("T2 map, pmu time is " << t2map.headers_[offset].physiology_time_stamp[0]);
 
@@ -566,8 +566,8 @@ namespace Gadgetron {
                             t1pmap.meta_[offset].append(GADGETRON_IMAGECOMMENT, unitStr_t1pmap.c_str());
 
                             // we will need a new data role type
-                            t1pmap.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1RHOMAP);
-                            t1pmap.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T1RHOMAP);
+                            // t1pmap.meta_[offset].append(GADGETRON_SEQUENCEDESCRIPTION, GADGETRON_IMAGE_T1RHOMAP);
+                            // t1pmap.meta_[offset].append(GADGETRON_IMAGEPROCESSINGHISTORY, GADGETRON_IMAGE_T1RHOMAP);
 
                             t1pmap.meta_[offset].append(GADGETRON_IMAGE_INTENSITY_UNCHANGED, (long)1);
 
