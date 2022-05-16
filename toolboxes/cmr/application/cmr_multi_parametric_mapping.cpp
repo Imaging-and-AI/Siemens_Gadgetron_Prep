@@ -307,7 +307,7 @@ void CmrMultiParametricMapping<T>::perform_parametric_mapping()
                     pMaskCurr = pMask + s*RO*E1 + slc*S*RO*E1;
                 }
 
-#pragma omp parallel private(e1, ro, n) shared(RO, E1, pMask, pMaskCurr, pData, pMap, pMapSD, pPara, pParaSD, N, NUM)
+//#pragma omp parallel private(e1, ro, n) shared(RO, E1, pMask, pMaskCurr, pData, pMap, pMapSD, pPara, pParaSD, N, NUM)
 //#pragma omp parallel
                 {
                     std::vector<T> yi(N, 0);
@@ -317,7 +317,7 @@ void CmrMultiParametricMapping<T>::perform_parametric_mapping()
 
                     T map_v(0), map_sd(0);
 
-#pragma omp for
+//#pragma omp for
                     for (e1 = 0; e1 < E1; e1++)
                     {
                         for (ro = 0; ro < RO; ro++)
