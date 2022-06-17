@@ -878,6 +878,34 @@ namespace Gadgetron {
                 // GDEBUG_STREAM("t1t2_sasha.ti[" << n << "] = " << t1t2_sasha.ti_[n]);
             }
 
+            if (!debug_folder_full_path_.empty())
+            {
+                hoNDArray<float> buf(N);
+                memcpy(buf.begin(), &this->prep_times_ts_[0], sizeof(float)*N);
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_ts");
+            }
+
+            if (!debug_folder_full_path_.empty())
+            {
+                hoNDArray<float> buf(N);
+                memcpy(buf.begin(), &this->prep_times_t2p_[0], sizeof(float)*N);
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_t2p");
+            }
+
+            if (!debug_folder_full_path_.empty())
+            {
+                hoNDArray<float> buf(1);
+                buf[0] = this->t2p_rf_duration_;
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_t2p_rf_duration");
+            }
+
+            if (!debug_folder_full_path_.empty())
+            {
+                hoNDArray<float> buf(1);
+                buf[0] = this->time_t2p_to_center_kspace_;
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_time_t2p_to_center_kspace");
+            }
+
             // set the anchor image TS
             size_t anchor_ind = this->anchor_image_index.value();
             if (anchor_ind < N)
@@ -886,6 +914,11 @@ namespace Gadgetron {
             }
 
             t1t2_sasha.data_.create(RO, E1, N, S, SLC, mag.begin());
+
+            if (!debug_folder_full_path_.empty())
+            {
+                gt_exporter_.export_array(t1t2_sasha.data_, debug_folder_full_path_ + "CmrParametricT1SRMapping_t1t2_sasha_data");
+            }
 
             t1t2_sasha.max_iter_       = max_iter.value();
             t1t2_sasha.thres_fun_      = thres_func.value();
