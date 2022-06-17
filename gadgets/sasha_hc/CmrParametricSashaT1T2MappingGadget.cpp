@@ -580,6 +580,34 @@ namespace Gadgetron {
                 gt_exporter_.export_array(mag, debug_folder_full_path_ + "CmrParametricT1SRMapping_data_mag");
             }
 
+            if (!debug_folder_full_path_.empty())
+            {
+                hoNDArray<float> buf(N);
+                memcpy(buf.begin(), &this->prep_times_ts_[0], sizeof(float)*N);
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_ts");
+            }
+
+            if (!debug_folder_full_path_.empty())
+            {
+                hoNDArray<float> buf(N);
+                memcpy(buf.begin(), &this->prep_times_t2p_[0], sizeof(float)*N);
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_t2p");
+            }
+
+            if (!debug_folder_full_path_.empty())
+            {
+                hoNDArray<float> buf(1);
+                buf[0] = this->t2p_rf_duration_;
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_t2p_rf_duration");
+            }
+
+            if (!debug_folder_full_path_.empty())
+            {
+                hoNDArray<float> buf(1);
+                buf[0] = this->time_t2p_to_center_kspace_;
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_time_t2p_to_center_kspace");
+            }
+
             bool need_sd_map = send_sd_map.value();
 
             Gadgetron::GadgetronTimer gt_timer(false);
