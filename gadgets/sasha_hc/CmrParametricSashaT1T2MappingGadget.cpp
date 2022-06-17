@@ -641,6 +641,11 @@ namespace Gadgetron {
 
             t1t2_sasha.data_.create(RO, E1, N, S, SLC, mag.begin());
 
+            if (!debug_folder_full_path_.empty())
+            {
+                gt_exporter_.export_array(t1t2_sasha.data_, debug_folder_full_path_ + "CmrParametricT1SRMapping_t1t2_sasha_data");
+            }
+
             t1t2_sasha.max_iter_       = max_iter.value();
             t1t2_sasha.thres_fun_      = thres_func.value();
             t1t2_sasha.max_map_value_  = max_T1.value();
