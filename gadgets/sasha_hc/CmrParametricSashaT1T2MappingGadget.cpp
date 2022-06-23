@@ -575,37 +575,43 @@ namespace Gadgetron {
             hoNDArray<float> mag;
             Gadgetron::abs(data.data_, mag);
 
+            size_t curr_slc = data.headers_(0).slice;
+
+            std::ostringstream str;
+            str << "_slice_" << curr_slc;
+            std::string slc_str = str.str();
+
             if (!debug_folder_full_path_.empty())
             {
-                gt_exporter_.export_array(mag, debug_folder_full_path_ + "CmrParametricT1SRMapping_data_mag");
+                gt_exporter_.export_array(mag, debug_folder_full_path_ + "CmrParametricT1SRMapping_data_mag_" + slc_str);
             }
 
             if (!debug_folder_full_path_.empty())
             {
                 hoNDArray<float> buf(N);
                 memcpy(buf.begin(), &this->prep_times_ts_[0], sizeof(float)*N);
-                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_ts");
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_ts_" + slc_str);
             }
 
             if (!debug_folder_full_path_.empty())
             {
                 hoNDArray<float> buf(N);
                 memcpy(buf.begin(), &this->prep_times_t2p_[0], sizeof(float)*N);
-                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_t2p");
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_t2p_" + slc_str);
             }
 
             if (!debug_folder_full_path_.empty())
             {
                 hoNDArray<float> buf(1);
                 buf[0] = this->t2p_rf_duration_;
-                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_t2p_rf_duration");
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_t2p_rf_duration_" + slc_str);
             }
 
             if (!debug_folder_full_path_.empty())
             {
                 hoNDArray<float> buf(1);
                 buf[0] = this->time_t2p_to_center_kspace_;
-                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_time_t2p_to_center_kspace");
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_time_t2p_to_center_kspace_" + slc_str);
             }
 
             bool need_sd_map = send_sd_map.value();
@@ -643,7 +649,7 @@ namespace Gadgetron {
 
             if (!debug_folder_full_path_.empty())
             {
-                gt_exporter_.export_array(t1t2_sasha.data_, debug_folder_full_path_ + "CmrParametricT1SRMapping_t1t2_sasha_data");
+                gt_exporter_.export_array(t1t2_sasha.data_, debug_folder_full_path_ + "CmrParametricT1SRMapping_t1t2_sasha_data_" + slc_str);
             }
 
             t1t2_sasha.max_iter_       = max_iter.value();
@@ -689,7 +695,7 @@ namespace Gadgetron {
 
                 if (!debug_folder_full_path_.empty())
                 {
-                    gt_exporter_.export_array(mag_longest_TS, debug_folder_full_path_ + "CmrParametricT1SRMapping_mag_longest_TS");
+                    gt_exporter_.export_array(mag_longest_TS, debug_folder_full_path_ + "CmrParametricT1SRMapping_mag_longest_TS_" + slc_str);
                 }
 
                 double scale_factor = 1.0;
@@ -706,7 +712,7 @@ namespace Gadgetron {
 
                 if (!debug_folder_full_path_.empty())
                 {
-                    gt_exporter_.export_array(t1t2_sasha.mask_for_mapping_, debug_folder_full_path_ + "CmrParametricT1SRMapping_mask_for_mapping");
+                    gt_exporter_.export_array(t1t2_sasha.mask_for_mapping_, debug_folder_full_path_ + "CmrParametricT1SRMapping_mask_for_mapping_" + slc_str);
                 }
             }
 
@@ -878,32 +884,39 @@ namespace Gadgetron {
                 // GDEBUG_STREAM("t1t2_sasha.ti[" << n << "] = " << t1t2_sasha.ti_[n]);
             }
 
+            size_t curr_slc = data.headers_(0).slice;
+
+            std::ostringstream str;
+            str << "_slice_" << curr_slc;
+
+            std::string slc_str = str.str();
+
             if (!debug_folder_full_path_.empty())
             {
                 hoNDArray<float> buf(N);
                 memcpy(buf.begin(), &this->prep_times_ts_[0], sizeof(float)*N);
-                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_ts");
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_ts_" + slc_str);
             }
 
             if (!debug_folder_full_path_.empty())
             {
                 hoNDArray<float> buf(N);
                 memcpy(buf.begin(), &this->prep_times_t2p_[0], sizeof(float)*N);
-                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_t2p");
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_prep_times_t2p_" + slc_str);
             }
 
             if (!debug_folder_full_path_.empty())
             {
                 hoNDArray<float> buf(1);
                 buf[0] = this->t2p_rf_duration_;
-                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_t2p_rf_duration");
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_t2p_rf_duration_" + slc_str);
             }
 
             if (!debug_folder_full_path_.empty())
             {
                 hoNDArray<float> buf(1);
                 buf[0] = this->time_t2p_to_center_kspace_;
-                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_time_t2p_to_center_kspace");
+                gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_time_t2p_to_center_kspace_" + slc_str);
             }
 
             // set the anchor image TS
@@ -917,7 +930,7 @@ namespace Gadgetron {
 
             if (!debug_folder_full_path_.empty())
             {
-                gt_exporter_.export_array(t1t2_sasha.data_, debug_folder_full_path_ + "CmrParametricT1SRMapping_t1t2_sasha_data");
+                gt_exporter_.export_array(t1t2_sasha.data_, debug_folder_full_path_ + "CmrParametricT1SRMapping_t1t2_sasha_data_" + slc_str);
             }
 
             t1t2_sasha.max_iter_       = max_iter.value();
@@ -963,7 +976,7 @@ namespace Gadgetron {
 
                 if (!debug_folder_full_path_.empty())
                 {
-                    gt_exporter_.export_array(mag_longest_TS, debug_folder_full_path_ + "CmrParametricT1SRMapping_mag_longest_TS");
+                    gt_exporter_.export_array(mag_longest_TS, debug_folder_full_path_ + "CmrParametricT1SRMapping_mag_longest_TS_" + slc_str);
                 }
 
                 double scale_factor = 1.0;
@@ -980,7 +993,7 @@ namespace Gadgetron {
 
                 if (!debug_folder_full_path_.empty())
                 {
-                    gt_exporter_.export_array(t1t2_sasha.mask_for_mapping_, debug_folder_full_path_ + "CmrParametricT1SRMapping_mask_for_mapping");
+                    gt_exporter_.export_array(t1t2_sasha.mask_for_mapping_, debug_folder_full_path_ + "CmrParametricT1SRMapping_mask_for_mapping_" + slc_str);
                 }
             }
 
