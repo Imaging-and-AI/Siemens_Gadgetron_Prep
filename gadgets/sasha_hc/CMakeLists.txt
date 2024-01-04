@@ -54,9 +54,11 @@ set( sasha_hc_header_files
      DuplicateReferenceDataGadget.h
      FlagSashaHCGadget.h
      MoCoSashaHCGadget.h
+     MoCoSashaGadget.h
      ReconGrappaSashaHCGadget.h
      SashaHCMultiAveGadget.h
-     SashaHCMultiRepGadget.h )
+     SashaHCMultiRepGadget.h 
+     )
 
 set( sasha_hc_src_files 
     CalcMolliTiGadget.cpp
@@ -64,9 +66,11 @@ set( sasha_hc_src_files
     DuplicateReferenceDataGadget.cpp
     FlagSashaHCGadget.cpp
     MoCoSashaHCGadget.cpp
+    MoCoSashaGadget.cpp
     ReconGrappaSashaHCGadget.cpp
     SashaHCMultiAveGadget.cpp
-    SashaHCMultiRepGadget.cpp )
+    SashaHCMultiRepGadget.cpp 
+    )
 
 source_group(config     FILES      ${config_files})
 source_group(schema     FILES      ${config_schema_files})
