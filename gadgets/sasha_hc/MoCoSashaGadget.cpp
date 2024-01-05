@@ -81,24 +81,33 @@ namespace Gadgetron {
         os << "called_" << process_called_times_;
         std::string str = os.str();
 
-        IsmrmrdImageArray* recon_res_ = m1->getObjectPtr();
+        IsmrmrdImageArray recon_res_ = *(m1->getObjectPtr());
 
-        size_t encoding = (size_t)recon_res_->meta_[0].as_long("encoding", 0);
+        if (send_ori.value())
+        {
+            if (this->next()->putq(m1) == -1)
+            {
+                GERROR("MoCoSashaGadget::process, passing m1 on to next gadget");
+                return GADGET_FAIL;
+            }
+        }
+
+        size_t encoding = (size_t)recon_res_.meta_[0].as_long("encoding", 0);
         GADGET_CHECK_RETURN(encoding < num_encoding_spaces_, GADGET_FAIL);
 
         std::string imageInfo;
 
-        size_t RO = recon_res_->data_.get_size(0);
-        size_t E1 = recon_res_->data_.get_size(1);
-        size_t E2 = recon_res_->data_.get_size(2);
-        size_t CHA = recon_res_->data_.get_size(3);
-        size_t N = recon_res_->data_.get_size(4); // set
-        size_t S = recon_res_->data_.get_size(5); // average
-        size_t SLC = recon_res_->data_.get_size(6);
+        size_t RO = recon_res_.data_.get_size(0);
+        size_t E1 = recon_res_.data_.get_size(1);
+        size_t E2 = recon_res_.data_.get_size(2);
+        size_t CHA = recon_res_.data_.get_size(3);
+        size_t N = recon_res_.data_.get_size(4); // set
+        size_t S = recon_res_.data_.get_size(5); // average
+        size_t SLC = recon_res_.data_.get_size(6);
 
         if (!debug_folder_full_path_.empty())
         {
-            hoNDArray<T> data = recon_res_->data_;
+            hoNDArray<T> data = recon_res_.data_;
             data.squeeze();
             gt_exporter_.export_array_complex(data, debug_folder_full_path_ + "MoCoSasha_data_" + str);
         }
@@ -116,7 +125,7 @@ namespace Gadgetron {
             os << "slice_" << slc;
             std::string str_slc = os.str();
 
-            hoNDArray<real_value_type> mag, real_im, imag_im;
+            hoNDArray<real_value_type> mag, data_real, data_imag;
             mag.create(RO, E1, N*S);
             data_real.create(RO, E1, N*S);
             data_imag.create(RO, E1, N*S);
@@ -129,9 +138,9 @@ namespace Gadgetron {
                     {
                         for (ro=0; ro<RO; ro++)
                         {
-                            mag(ro, e1, n+s*N) = std::abs(recon_res_->data_(ro, e1, 0, 0, n, s, slc));
-                            data_real(ro, e1, n+s*N) = recon_res_->data_(ro, e1, 0, 0, n, s, slc).real();
-                            data_imag(ro, e1, n+s*N) = recon_res_->data_(ro, e1, 0, 0, n, s, slc).imag();
+                            mag(ro, e1, n+s*N) = std::abs(recon_res_.data_(ro, e1, 0, 0, n, s, slc));
+                            data_real(ro, e1, n+s*N) = recon_res_.data_(ro, e1, 0, 0, n, s, slc).real();
+                            data_imag(ro, e1, n+s*N) = recon_res_.data_(ro, e1, 0, 0, n, s, slc).imag();
                         }
                     }
                 }
@@ -140,8 +149,8 @@ namespace Gadgetron {
             if (!debug_folder_full_path_.empty())
             {
                 gt_exporter_.export_array(mag, debug_folder_full_path_ + "MoCoSasha_data_mag_" + str);
-                gt_exporter_.export_array(mag, debug_folder_full_path_ + "MoCoSasha_data_real_" + str);
-                gt_exporter_.export_array(mag, debug_folder_full_path_ + "MoCoSasha_data_imag_" + str);
+                gt_exporter_.export_array(data_real, debug_folder_full_path_ + "MoCoSasha_data_real_" + str);
+                gt_exporter_.export_array(data_imag, debug_folder_full_path_ + "MoCoSasha_data_imag_" + str);
             }
 
             size_t key_frame(0);
@@ -225,186 +234,55 @@ namespace Gadgetron {
         // ----------------------------------------------------
         // format data to be passed on
         // ----------------------------------------------------
-        Gadgetron::GadgetContainerMessage< IsmrmrdImageArray >* m1_sasha           = new Gadgetron::GadgetContainerMessage< IsmrmrdImageArray >();
         Gadgetron::GadgetContainerMessage< IsmrmrdImageArray >* m1_sasha_moco      = new Gadgetron::GadgetContainerMessage< IsmrmrdImageArray >();
-
-        if (send_ori.value())
-        {
-            m1_sasha->getObjectPtr()->data_.create(RO, E1, E2, CHA, N, 1, SLC);
-            m1_sasha->getObjectPtr()->headers_.create(N, 1, SLC);
-            m1_sasha->getObjectPtr()->meta_.resize(N*1*SLC);
-        }
 
         if (send_moco.value())
         {
-            m1_sasha_moco->getObjectPtr()->data_.create(RO, E1, E2, CHA, N, 1, SLC);
-            m1_sasha_moco->getObjectPtr()->headers_.create(N, 1, SLC);
-            m1_sasha_moco->getObjectPtr()->meta_.resize(N*1*SLC);
-        }
-
-        if (send_hc.value())
-        {
-            m1_sasha_hc->getObjectPtr()->data_.create(RO, E1, E2, CHA, N, 1, SLC);
-            m1_sasha_hc->getObjectPtr()->headers_.create(N, 1, SLC);
-            m1_sasha_hc->getObjectPtr()->meta_.resize(N*1*SLC);
-        }
-
-        if (send_diff.value())
-        {
-            m1_sasha_diff->getObjectPtr()->data_.create(RO, E1, E2, CHA, N, 1, SLC);
-            m1_sasha_diff->getObjectPtr()->headers_.create(N, 1, SLC);
-            m1_sasha_diff->getObjectPtr()->meta_.resize(N*1*SLC);
-        }
-
-        if (send_diff.value() && send_moco.value())
-        {
-            m1_sasha_diff_moco->getObjectPtr()->data_.create(RO, E1, E2, CHA, N, 1, SLC);
-            m1_sasha_diff_moco->getObjectPtr()->headers_.create(N, 1, SLC);
-            m1_sasha_diff_moco->getObjectPtr()->meta_.resize(N*1*SLC);
+            m1_sasha_moco->getObjectPtr()->data_.create(RO, E1, E2, CHA, N, S, SLC);
+            m1_sasha_moco->getObjectPtr()->headers_.create(N, S, SLC);
+            m1_sasha_moco->getObjectPtr()->meta_.resize(N*S*SLC);
         }
 
         if(this->disable_moco.value() || !this->do_moco_)
         {
             GDEBUG_STREAM("Disable moco ...");
-            moco = recon_res_->data_;
+            moco = recon_res_.data_;
         }
+        m1_sasha_moco->getObjectPtr()->data_ = moco;
 
         for (slc=0; slc<SLC; slc++)
         {
-            for (n=0; n<N; n++)
+            for (s=0; s<S; s++)
             {
-                // ------------------------------
-                // Copy image data
-                // ------------------------------
-                if (send_ori.value())
+                for (n=0; n<N; n++)
                 {
-                    memcpy( &(m1_sasha->getObjectPtr()->data_(     0, 0, 0, 0, n, 0, slc)), 
-                            &(recon_res_->data_(                   0, 0, 0, 0, n, 0, slc)), sizeof(T)*RO*E1*E2*CHA);
-                }
+                    size_t ind = n + s*N + slc*N*S;
+                    // ------------------------------
+                    // Fill in headers
+                    // ------------------------------
+                    if (send_moco.value())
+                    {
+                        m1_sasha_moco->getObjectPtr()->headers_(n, s, slc) = recon_res_.headers_(n, s, slc);
+                        m1_sasha_moco->getObjectPtr()->headers_(n, s, slc).image_index = (n + 1) + s*N + slc*N*S;
+                        m1_sasha_moco->getObjectPtr()->headers_(n, s, slc).image_series_index += 100;
+                        m1_sasha_moco->getObjectPtr()->headers_(n, s, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
 
-                if (send_moco.value())
-                {
-                    memcpy( &(m1_sasha_moco->getObjectPtr()->data_(0, 0, 0, 0, n, 0, slc)),
-                            &(moco(                                0, 0, 0, 0, n, 0, slc)), sizeof(T)*RO*E1*E2*CHA);
-                }
+                        m1_sasha_moco->getObjectPtr()->meta_[ind] = recon_res_.meta_[ind];
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].set(GADGETRON_DATA_ROLE, "GT");
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].append(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_REGULAR);
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].append(GADGETRON_DATA_ROLE, "SASHA");
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].append(GADGETRON_DATA_ROLE, "MOCO");
 
-                if (send_hc.value())
-                {
-                    memcpy( &(m1_sasha_hc->getObjectPtr()->data_(  0, 0, 0, 0, n, 0, slc)), 
-                            &(recon_res_->data_(                   0, 0, 0, 0, n, 1, slc)), sizeof(T)*RO*E1*E2*CHA);
-                }
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].append(GADGETRON_IMAGECOMMENT, "SASHA");
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].append(GADGETRON_IMAGECOMMENT, "MOCO");
 
-                if (send_diff.value())
-                {
-                    memcpy( &(m1_sasha_diff->getObjectPtr()->data_(0, 0, 0, 0, n, 0, slc)), 
-                            &(diff(                                0, 0, 0, 0, n, 0, slc)), sizeof(T)*RO*E1*E2*CHA);
-                }
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].append(GADGETRON_IMAGEPROCESSINGHISTORY, "MOCO");
 
-                if (send_diff.value() && send_moco.value())
-                {
-                    memcpy( &(m1_sasha_diff_moco->getObjectPtr()->data_(0, 0, 0, 0, n, 0, slc)), 
-                            &(diff_moco(                                0, 0, 0, 0, n, 0, slc)), sizeof(T)*RO*E1*E2*CHA);                        
-                }
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA");
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].append(GADGETRON_SEQUENCEDESCRIPTION, "MOCO");
 
-                // TS time
-                std::stringstream ss_ts_time;
-                ss_ts_time << "TS" << (int16_t)recon_res_->headers_(n, 0, slc).user_int[4];
-//                GDEBUG_STREAM("n: " << n << " " << ss_ts_time.str());
-
-                // ------------------------------
-                // Fill in headers
-                // ------------------------------
-                if (send_ori.value())
-                {
-                    m1_sasha->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 0, slc);
-                    m1_sasha->getObjectPtr()->headers_(n, 0, slc).image_index = (n + 1) + N * slc;
-                    m1_sasha->getObjectPtr()->headers_(n, 0, slc).image_series_index += 0;
-                    m1_sasha->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
-
-                    m1_sasha->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+0*N+slc*N*S];
-                    m1_sasha->getObjectPtr()->meta_[n + slc * N].set(GADGETRON_DATA_ROLE, "GT");
-                    m1_sasha->getObjectPtr()->meta_[n + slc * N].append(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_REGULAR);
-                    m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA");
-
-                    m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA");
-                    m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA");
-
-                    m1_sasha->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, ss_ts_time.str().c_str());
-                    m1_sasha->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
-
-                    m1_sasha->getObjectPtr()->meta_[n + slc * N].set(GADGETRON_IMAGENUMBER, (long)((n + 1) + N * slc));
-                }
-
-                if (send_moco.value())
-                {
-                    m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 0, slc);
-                    m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc).image_index = (n + 1) + N * slc;
-                    m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc).image_series_index += 100;
-                    m1_sasha_moco->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
-
-                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+0*N+slc*N*S];
-                    m1_sasha_moco->getObjectPtr()->meta_[n + slc * N].set(GADGETRON_DATA_ROLE, "GT");
-                    m1_sasha_moco->getObjectPtr()->meta_[n + slc * N].append(GADGETRON_DATA_ROLE, GADGETRON_IMAGE_REGULAR);
-                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA");
-                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "MOCO");
-
-                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA");
-                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "MOCO");
-
-                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGEPROCESSINGHISTORY, "MOCO");
-
-                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA");
-                    m1_sasha_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "MOCO");
-
-                    m1_sasha_moco->getObjectPtr()->meta_[n + slc * N].set(GADGETRON_IMAGENUMBER, (long)((n + 1) + N * slc));
-                }
-
-                if (send_hc.value())
-                {
-                    m1_sasha_hc->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 1, slc);
-                    m1_sasha_hc->getObjectPtr()->headers_(n, 0, slc).image_series_index += 1; // Not +2 because the second contrast already gave it a +1
-                    m1_sasha_hc->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
-
-                    m1_sasha_hc->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+1*N+slc*N*S];
-                    m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA_HC");
-
-                    m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA_HC");
-                    m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA_HC");
-                    m1_sasha_hc->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
-                }
-
-                if (send_diff.value())
-                {
-                    m1_sasha_diff->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 0, slc);
-                    m1_sasha_diff->getObjectPtr()->headers_(n, 0, slc).image_series_index += 3;
-                    m1_sasha_diff->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
-
-                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+0*N+slc*N*S];
-                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE,           "SASHA_HC_DIFF");
-                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT,        "SASHA_HC_DIFF");
-                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA_HC_DIFF");
-                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
-                    m1_sasha_diff->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
-                }
-
-                if (send_diff.value() && send_moco.value())
-                {
-                    m1_sasha_diff_moco->getObjectPtr()->headers_(n, 0, slc) = recon_res_->headers_(n, 0, slc);
-                    m1_sasha_diff_moco->getObjectPtr()->headers_(n, 0, slc).image_series_index += 4;
-                    m1_sasha_diff_moco->getObjectPtr()->headers_(n, 0, slc).image_type = ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE;
-
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N] = recon_res_->meta_[n+0*N+slc*N*S];
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "SASHA_HC_DIFF");
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_DATA_ROLE, "MOCO");
-
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "SASHA_HC_DIFF");
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGECOMMENT, "MOCO");
-
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_IMAGEPROCESSINGHISTORY, "MOCO");
-
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "SASHA_HC_DIFF");
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append(GADGETRON_SEQUENCEDESCRIPTION, "MOCO");
-                    m1_sasha_diff_moco->getObjectPtr()->meta_[n+slc*N].append("Skip_processing_after_recon", "true");
+                        m1_sasha_moco->getObjectPtr()->meta_[ind].set(GADGETRON_IMAGENUMBER, (long)((n + 1) + s*N + slc*N*S));
+                    }
                 }
             }
         } // slc loop
@@ -412,47 +290,11 @@ namespace Gadgetron {
         // ------------------------------
         // Enqueue
         // ------------------------------
-        if (send_ori.value())
-        {
-            if (this->next()->putq(m1_sasha) == -1)
-            {
-                GERROR("MoCoSashaGadget::process, passing m1_sasha on to next gadget");
-                return GADGET_FAIL;
-            }
-        }
-
         if (send_moco.value())
         {
             if (this->next()->putq(m1_sasha_moco) == -1)
             {
                 GERROR("MoCoSashaGadget::process, passing m1_sasha_moco on to next gadget");
-                return GADGET_FAIL;
-            }
-        }
-
-        if (send_hc.value())
-        {
-            if (this->next()->putq(m1_sasha_hc) == -1)
-            {
-                GERROR("MoCoSashaGadget::process, passing m1_sasha_hc on to next gadget");
-                return GADGET_FAIL;
-            }
-        }
-
-        if (send_diff.value())
-        {
-            if (this->next()->putq(m1_sasha_diff) == -1)
-            {
-                GERROR("MoCoSashaGadget::process, passing m1_sasha_diff on to next gadget");
-                return GADGET_FAIL;
-            }
-        }
-
-        if (send_diff.value() && send_moco.value())
-        {
-            if (this->next()->putq(m1_sasha_diff_moco) == -1)
-            {
-                GERROR("MoCoSashaGadget::process, passing m1_sasha_diff_moco on to next gadget");
                 return GADGET_FAIL;
             }
         }
