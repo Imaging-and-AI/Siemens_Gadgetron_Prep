@@ -18,6 +18,11 @@ namespace Gadgetron {
 
         typedef CmrParametricMappingGadget BaseClass;
 
+        typedef float real_value_type;
+        typedef std::complex<real_value_type> ValueType;
+        typedef Gadgetron::hoNDImage<real_value_type, 2> ImageType;
+        typedef ValueType T;
+
         CmrParametricSashaT1T2MappingGadget();
         ~CmrParametricSashaT1T2MappingGadget();
 
@@ -51,6 +56,8 @@ namespace Gadgetron {
         GADGET_PROPERTY(window_width_t1map_3T,  double, "Window width for T1 map at 3T",     2500);
         GADGET_PROPERTY(window_center_t2map_3T, double, "Window center for T2 map at 3T",      60);
         GADGET_PROPERTY(window_width_t2map_3T,  double, "Window width for T2 map at 3T",      120);
+
+        GADGET_PROPERTY(has_HC, bool, "Whether to has HC lines", true);
 
     protected:
 

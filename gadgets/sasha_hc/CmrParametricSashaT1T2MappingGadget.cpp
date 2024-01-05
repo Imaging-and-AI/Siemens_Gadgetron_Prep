@@ -90,10 +90,6 @@ namespace Gadgetron {
                 }
             }
 
-            // First SASHA image is an anchor unless otherwise specified
-            this->prep_times_ts_[ 0] = 10000000; // 10 s dummy value
-            this->prep_times_t2p_[0] = 0;
-
             // Read in T1 and T2 prep times
             // FIXME: This doesn't allow for the first image to be T2p or SR
             size_t iT1 = 1;
@@ -140,6 +136,18 @@ namespace Gadgetron {
                         iT2++;
                     }
                 }
+            }
+
+            // First SASHA image is an anchor unless otherwise specified
+            if (this->has_HC.value())
+            {
+                this->prep_times_ts_[ 0] = 10000000;
+                this->prep_times_t2p_[0] = 0;
+            }
+            else
+            {
+                this->prep_times_ts_[0] = this->prep_times_ts_[1];
+                this->prep_times_t2p_[0] = 0;
             }
         }
 
@@ -211,6 +219,26 @@ namespace Gadgetron {
         GDEBUG_STREAM("dataRole:" << dataRole);
 
         size_t ro, e1, e2, cha, n, s, slc;
+
+        if (this->has_HC.value())
+        {
+            hoNDArray<T> data_n_s;
+            data_n_s.create(RO, E1, E2, CHA, N*S, 1, SLC);
+            for (slc=0; slc<SLC; slc++)
+            {
+                for (s=0; s<S; s++)
+                {
+                    for (n=0; n<N; n++)
+                    {
+                        memcpy(&data_n_s(0, 0, 0, 0, n+s*N, 0, slc), &data->data_(0, 0, 0, 0, n, s, slc), sizeof(T)*RO*E1);
+                    }
+                }
+            }
+
+            data->data_ = data_n_s;
+            N *= S;
+            S = 1;
+        }
 
         std::stringstream os;
         os << "_encoding_" << encoding << "_processing_" << process_called_times_;
