@@ -147,7 +147,12 @@ namespace Gadgetron {
             else
             {
                 this->prep_times_ts_[0] = this->prep_times_ts_[1];
-                this->prep_times_t2p_[0] = 0;
+                this->prep_times_t2p_[0] = this->prep_times_t2p_[1];
+                size_t SET = this->meas_max_idx_.set+1;
+                for (size_t n=0; n<num_rep_; n++)
+                {
+                    this->prep_times_t2p_[n*SET] = this->prep_times_t2p_[n*SET+1];
+                }
             }
         }
 
@@ -907,9 +912,20 @@ namespace Gadgetron {
             memcpy(&(t1t2_sasha.ti_)[N*2],   &this->t2p_rf_duration_,           sizeof(float)*1);
             memcpy(&(t1t2_sasha.ti_)[N*2+1], &this->time_t2p_to_center_kspace_, sizeof(float)*1);
 
+            GDEBUG_STREAM("======================================");
+            for (size_t n = 0; n < this->prep_times_ts_.size(); n++)
+            {
+                GDEBUG_STREAM("this->prep_times_ts_[" << n << "] = " << this->prep_times_ts_[n]);
+            }
+            GDEBUG_STREAM("======================================");
+            for (size_t n = 0; n < this->prep_times_t2p_.size(); n++)
+            {
+                GDEBUG_STREAM("this->prep_times_t2p_[" << n << "] = " << this->prep_times_t2p_[n]);
+            }
+
             for (size_t n = 0; n < t1t2_sasha.ti_.size(); n++)
             {
-                // GDEBUG_STREAM("t1t2_sasha.ti[" << n << "] = " << t1t2_sasha.ti_[n]);
+                GDEBUG_STREAM("t1t2_sasha.ti[" << n << "] = " << t1t2_sasha.ti_[n]);
             }
 
             size_t curr_slc = data.headers_(0).slice;
