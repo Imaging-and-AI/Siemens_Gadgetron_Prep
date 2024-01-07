@@ -53,6 +53,7 @@ set( sasha_hc_header_files
      CmrParametricSashaT1T2MappingGadget.h
      DuplicateReferenceDataGadget.h
      FlagSashaHCGadget.h
+     FlagSashaGadget.h
      MoCoSashaHCGadget.h
      MoCoSashaGadget.h
      ReconGrappaSashaHCGadget.h
@@ -65,6 +66,7 @@ set( sasha_hc_src_files
     CmrParametricSashaT1T2MappingGadget.cpp
     DuplicateReferenceDataGadget.cpp
     FlagSashaHCGadget.cpp
+    FlagSashaGadget.cpp
     MoCoSashaHCGadget.cpp
     MoCoSashaGadget.cpp
     ReconGrappaSashaHCGadget.cpp

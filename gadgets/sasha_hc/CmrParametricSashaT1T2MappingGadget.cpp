@@ -146,7 +146,8 @@ namespace Gadgetron {
             }
             else
             {
-                this->prep_times_ts_[0] = this->prep_times_ts_[1];
+                this->prep_times_ts_[ 0] = 10000000;
+
                 this->prep_times_t2p_[0] = this->prep_times_t2p_[1];
                 size_t SET = this->meas_max_idx_.set+1;
                 for (size_t n=0; n<num_rep_; n++)
@@ -225,7 +226,7 @@ namespace Gadgetron {
 
         size_t ro, e1, e2, cha, n, s, slc;
 
-        if (this->has_HC.value())
+        if (!this->has_HC.value())
         {
             hoNDArray<T> data_n_s;
             data_n_s.create(RO, E1, E2, CHA, N*S, 1, SLC);
@@ -284,7 +285,7 @@ namespace Gadgetron {
             if (data->headers_(n).user_int[7] != 0)
             {
                 this->prep_times_ts_[n] = data->headers_(n).user_int[7] * 1e-3; // convert microsecond to ms
-                GDEBUG_STREAM("Image "   <<                                       std::setw(2) << n
+                GDEBUG_STREAM("set ts from user_int, image "   <<                                       std::setw(2) << n
                            << ": TS = "  << std::fixed << std::setprecision(1) << std::setw(6) << this->prep_times_ts_[n]  << "* ms "
                            << ", T2p = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t2p_[n] << " ms ");
             }
