@@ -1,6 +1,7 @@
 /**
 \file   CmrParametricSashaT1T2MappingGadget.h
 \brief  This is the class gadget for cardiac T1/T2 SASHA mapping, working on the IsmrmrdImageArray.
+        If the T1p parameters are set, it will perform T1/T2/T1p mapping
 \author Hui Xue
 */
 
@@ -8,6 +9,10 @@
 
 #include "sashahclib_export.h"
 #include "CmrParametricMappingGadget.h"
+
+#ifndef GADGETRON_IMAGE_T1RHOMAP
+    #define GADGETRON_IMAGE_T1RHOMAP                       "T1RHO"
+#endif // GADGETRON_IMAGE_T1RHOMAP
 
 namespace Gadgetron {
 
@@ -34,6 +39,7 @@ namespace Gadgetron {
         GADGET_PROPERTY(thres_func, double, "Threshold for minimal change of cost function", 1e-4);
         GADGET_PROPERTY(max_T1,     double, "Maximal T1 allowed in mapping (ms)",            4000);
         GADGET_PROPERTY(max_T2,     double, "Maximal T2 allowed in mapping (ms)",            1000);
+        GADGET_PROPERTY(max_T1p,    double, "Maximal T1p allowed in mapping (ms)",           1000);
 
         GADGET_PROPERTY(anchor_image_index, size_t, "Index for anchor image; by default, the first image is the anchor (without SR pulse)", 0);
         GADGET_PROPERTY(anchor_TS,          double, "Saturation time for anchor",            100000);
@@ -44,18 +50,26 @@ namespace Gadgetron {
         GADGET_PROPERTY(color_lut_t2map_15T, std::string, "Color lookup table for t2 map at 1.5T", "GadgetronT2_1_5T.pal");
         GADGET_PROPERTY(color_lut_t2map_3T, std::string, "Color lookup table for t2 map at 1.5T", "GadgetronT2_3T.pal");
 
+        GADGET_PROPERTY(color_lut_t1pmap_15T, std::string, "Color lookup table for t1p map at 1.5T", "GadgetronT2_1_5T.pal");
+        GADGET_PROPERTY(color_lut_t1pmap_3T, std::string, "Color lookup table for t1p map at 1.5T", "GadgetronT2_3T.pal");
+
         GADGET_PROPERTY(window_center_t1map_15T, double, "Window center for T1 map at 1.5T", 1300);
         GADGET_PROPERTY(window_width_t1map_15T,  double, "Window width for T1 map at 1.5T",  1300);
         GADGET_PROPERTY(window_center_t2map_15T, double, "Window center for T2 map at 1.5T",   60);
         GADGET_PROPERTY(window_width_t2map_15T,  double, "Window width for T2 map at 1.5T",   120);
+        GADGET_PROPERTY(window_center_t1pmap_15T, double, "Window center for T1p map at 1.5T", 60);
+        GADGET_PROPERTY(window_width_t1pmap_15T, double, "Window width for T1p map at 1.5T", 120);
+
+        GADGET_PROPERTY(window_center_t1map_3T, double, "Window center for T1 map at 3T",       1250);
+        GADGET_PROPERTY(window_width_t1map_3T,  double, "Window width for T1 map at 3T",        2500);
+        GADGET_PROPERTY(window_center_t2map_3T, double, "Window center for T2 map at 3T",       60);
+        GADGET_PROPERTY(window_width_t2map_3T,  double, "Window width for T2 map at 3T",        120);
+        GADGET_PROPERTY(window_center_t1pmap_3T, double, "Window center for T1p map at 3T",     60);
+        GADGET_PROPERTY(window_width_t1pmap_3T, double, "Window width for T1p map at 3T",       120);
 
         GADGET_PROPERTY(scaling_factor_t1map, double, "Scale factor for t1map", 1.0);
         GADGET_PROPERTY(scaling_factor_t2map, double, "Scale factor for t2map", 10.0);
-
-        GADGET_PROPERTY(window_center_t1map_3T, double, "Window center for T1 map at 3T",    1250);
-        GADGET_PROPERTY(window_width_t1map_3T,  double, "Window width for T1 map at 3T",     2500);
-        GADGET_PROPERTY(window_center_t2map_3T, double, "Window center for T2 map at 3T",      60);
-        GADGET_PROPERTY(window_width_t2map_3T,  double, "Window width for T2 map at 3T",      120);
+        GADGET_PROPERTY(scaling_factor_t1pmap, double, "Scale factor for t1pmap", 10.0);
 
         GADGET_PROPERTY(has_HC, bool, "Whether to has HC lines", true);
 
@@ -65,14 +79,17 @@ namespace Gadgetron {
         // variables for protocol
         // --------------------------------------------------
 
-        // saturation recovery / T2 prep times
+        // saturation recovery / T2 / T1rho prep times
         std::vector<float> prep_times_ts_;
         std::vector<float> prep_times_t2p_;
+        std::vector<float> prep_times_t1p_;
 
         float              time_t2p_to_center_kspace_;
-        float              t2p_rf_duration_;
+        std::vector<float> t2p_rf_duration_;
 
         size_t             num_rep_;
+
+        bool               has_t1p_mapping_;
 
         // --------------------------------------------------
         // functional functions
@@ -91,7 +108,8 @@ namespace Gadgetron {
         virtual int perform_mapping(IsmrmrdImageArray& data, IsmrmrdImageArray& map, IsmrmrdImageArray& para, IsmrmrdImageArray& map_sd, IsmrmrdImageArray& para_sd);
 
         virtual int perform_multi_mapping(IsmrmrdImageArray& data, IsmrmrdImageArray& t1map, IsmrmrdImageArray& t2map, IsmrmrdImageArray& para, IsmrmrdImageArray& map_sd, IsmrmrdImageArray& para_sd);
-        virtual int fill_multi_map_header(IsmrmrdImageArray& t1map, IsmrmrdImageArray& t2map);
+        virtual int perform_multi_mapping(IsmrmrdImageArray& data, IsmrmrdImageArray& t1map, IsmrmrdImageArray& t2map, IsmrmrdImageArray& t1pmap, IsmrmrdImageArray& para, IsmrmrdImageArray& map_sd, IsmrmrdImageArray& para_sd);
+        virtual int fill_multi_map_header(IsmrmrdImageArray& t1map, IsmrmrdImageArray& t2map, IsmrmrdImageArray& t1pmap);
 
     };
 }
