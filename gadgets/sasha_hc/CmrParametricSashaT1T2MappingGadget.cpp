@@ -682,8 +682,8 @@ namespace Gadgetron {
 
             if (!debug_folder_full_path_.empty())
             {
-                hoNDArray<float> buf(1);
-                buf[0] = this->t2p_rf_duration_;
+                hoNDArray<float> buf(this->t2p_rf_duration_.size());
+                memcpy(&buf[0], &this->t2p_rf_duration_[0], buf.get_number_of_bytes());
                 gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_t2p_rf_duration_" + slc_str);
             }
 
@@ -1006,8 +1006,8 @@ namespace Gadgetron {
 
             if (!debug_folder_full_path_.empty())
             {
-                hoNDArray<float> buf(1);
-                buf[0] = this->t2p_rf_duration_;
+                hoNDArray<float> buf(this->t2p_rf_duration_.size());
+                memcpy(&buf[0], &this->t2p_rf_duration_[0], buf.get_number_of_bytes());
                 gt_exporter_.export_array(buf, debug_folder_full_path_ + "CmrParametricT1SRMapping_t2p_rf_duration_" + slc_str);
             }
 

@@ -2,6 +2,7 @@
 
 include_directories(
     ${GADGETRON_INCLUDE_DIR}
+    ${GADGETRON_INCLUDE_DIR}/generic_recon_gadgets
     )
 
 include_directories(${CMAKE_SOURCE_DIR}
