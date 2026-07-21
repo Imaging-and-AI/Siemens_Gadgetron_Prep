@@ -58,6 +58,7 @@ set( sasha_hc_header_files
      sashahclib_export.h 
      CalcMolliTiGadget.h
      CmrParametricSashaT1T2MappingGadget.h
+     DicomOrientationGadget.h
      DuplicateReferenceDataGadget.h
      FlagSashaHCGadget.h
      FlagSashaGadget.h
@@ -71,6 +72,7 @@ set( sasha_hc_header_files
 set( sasha_hc_src_files 
     CalcMolliTiGadget.cpp
     CmrParametricSashaT1T2MappingGadget.cpp
+    DicomOrientationGadget.cpp
     DuplicateReferenceDataGadget.cpp
     FlagSashaHCGadget.cpp
     FlagSashaGadget.cpp
