@@ -180,7 +180,7 @@ RUN . /opt/conda/etc/profile.d/conda.sh && umask 0002 && conda activate ${ENV_NA
     cd /opt/code/Siemens_Gadgetron_Prep && \
     mkdir build && \
     cd build && \
-    cmake ../ -DCMAKE_BUILD_TYPE=Release -DUSE_MKL=ON -DUSE_CUDA=OFF -DDISABLE_FORK=OFF -DREQUIRE_SIGNED_CONFIG=OFF -DGADGETRON_HOME=$INSTALL_HOME -DCMAKE_INSTALL_PREFIX=$INSTALL_HOME && \
+    cmake ../ -DCMAKE_BUILD_TYPE=Release -DUSE_MKL=ON -DUSE_CUDA=OFF -DDISABLE_FORK=OFF -DREQUIRE_SIGNED_CONFIG=OFF -DGADGETRON_HOME=$INSTALL_HOME -DCMAKE_INSTALL_PREFIX=$INSTALL_HOME -DENV_NAME=${ENV_NAME} && \
     make -j $(nproc) && \
     make install 
     # git rev-parse HEAD >> /opt/code/Siemens_Gadgetron_Prep_sha1.txt && \
@@ -227,7 +227,6 @@ ARG INSTALL_HOME
 USER ${USER_UID}
 
 # LABEL "com.siemens-healthineers.magneticresonance.openrecon.metadata:1.1.0"=${OPENRECON_LABEL}
-COPY --from=gadgetron_build --chown=$USER_UID:$USER_GID opt/code/gadgetron/environment.yml /tmp
 COPY --from=gadgetron_build --chown=$USER_UID:$USER_GID opt/code/gadgetron/environment.yml /tmp/build/
 
 RUN mkdir -p ${HOME}/.cache/conda/notices && sudo chown -R ${USER_UID}:$USER_GID ${HOME}/.cache/conda/notices
@@ -235,6 +234,7 @@ RUN sudo chown -R $USER_UID:$USER_GID /opt && mkdir -p /opt/code
 RUN grep -v -vE "#.*\<dev\>|#.*cuda" /tmp/build/environment.yml > /tmp/build/filtered_environment.yml && cat /tmp/build/filtered_environment.yml
 RUN umask 0002 && /opt/conda/bin/mamba env create -f /tmp/build/filtered_environment.yml && /opt/conda/bin/mamba clean -afy && sudo chown -R $USER_UID:$USER_GID /opt/conda
 RUN . /opt/conda/etc/profile.d/conda.sh && umask 0002 && conda activate ${ENV_NAME}&& sh -x && pip3 cache purge
+RUN rm -r /tmp/build
 # RUN sudo mkdir -p /opt/integration-test && sudo chown $USER_UID:$USER_GID /opt/integration-test
 # RUN mkdir -p /opt/conda/envs/gadgetron-gtprep/log/supervisor
 # RUN mkdir -p /opt/conda/envs/gadgetron-gtprep/run/supervisor
