@@ -299,7 +299,7 @@
         <!-- debug and info mode -->
         <property><name>debug_folder</name><value></value></property>
         <property><name>perform_timing</name><value>false</value></property>
-        <property><name>verbose</name><value>true</value></property>
+        <property><name>verbose</name><value>false</value></property>
 
         <property><name>check_correct_image_orientation_flag</name><value>false</value></property>
         <property><name>output_image_in_column_storage</name><value>true</value></property>

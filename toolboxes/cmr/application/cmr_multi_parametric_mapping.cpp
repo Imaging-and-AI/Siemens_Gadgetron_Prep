@@ -263,7 +263,7 @@ void CmrMultiParametricMapping<T>::perform_parametric_mapping()
 
         if (this->verbose_)
         {
-            this->data_.print(std::cout);
+            this->data_.print(std::cerr);
 
             GDEBUG_STREAM("Time points of mapping : " << ti_.size());
             for (n = 0; n < ti_.size(); n++)
