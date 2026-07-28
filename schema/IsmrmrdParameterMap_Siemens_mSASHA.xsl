@@ -4,6 +4,12 @@
 
   <xsl:output method="xml" indent="yes"/>
 
+  <!-- Older data with a single RF duration -->
+  <xsl:variable name="singleRFDuration"
+    select="contains(string(siemens/MEAS/tSequenceFileName), 'BEAT_map_PK')
+         or contains(string(siemens/MEAS/tSequenceFileName), 'BEAT_map_1041C_PK2')
+         or contains(string(siemens/MEAS/tSequenceFileName), 'BEAT_map_1041C_T1T2')" />
+
   <xsl:variable name="numarisVersion">
     <xsl:choose>
       <xsl:when test="substring(siemens/DICOM/SoftwareVersions, 0, 12) = 'syngo MR XA'">NX</xsl:when>
@@ -1321,14 +1327,21 @@
           </userParameterLong>
         </xsl:if>
 
-        <xsl:if test="siemens/MEAS/ucMotionCorr and not(siemens/MEAS/ucMotionCorr = 0)">
-          <userParameterLong>
-            <name>MotionCorrection</name>
-              <value>
-                <xsl:value-of select="siemens/MEAS/ucMotionCorr" />
-              </value>
+        <xsl:choose>
+          <xsl:when test="siemens/MEAS/ucMotionCorr and not(siemens/MEAS/ucMotionCorr = 0)">
+            <userParameterLong>
+              <name>MotionCorrection</name>
+              <value><xsl:value-of select="siemens/MEAS/ucMotionCorr"/></value>
             </userParameterLong>
-        </xsl:if>
+          </xsl:when>
+
+          <xsl:when test="siemens/MEAS/ulMotionCorr and not(siemens/MEAS/ulMotionCorr = 0)">
+            <userParameterLong>
+              <name>MotionCorrection</name>
+              <value><xsl:value-of select="siemens/MEAS/ulMotionCorr"/></value>
+            </userParameterLong>
+          </xsl:when>
+        </xsl:choose>
 
         <xsl:if test="siemens/IRIS/DERIVED/relSliceNumber">
           <xsl:for-each select="siemens/IRIS/DERIVED/relSliceNumber">
@@ -1578,31 +1591,33 @@
         </xsl:if>
 
         <!--  T1rho (spin-lock) prep durations  -->
-        <xsl:if test="siemens/MEAS/sWipMemBlock/adFree">
-          <xsl:for-each select="siemens/MEAS/sWipMemBlock/adFree[position() &lt;= 16]">
-            <userParameterDouble>
-              <name>
-                <xsl:value-of select="concat('T1pPrepDuration_', position())"/>
-              </name>
-              <value>
-                <xsl:value-of select="." />
-              </value>
-            </userParameterDouble>
-          </xsl:for-each>
-        </xsl:if>
+        <xsl:if test="not($singleRFDuration)">
+          <xsl:if test="siemens/MEAS/sWipMemBlock/adFree">
+            <xsl:for-each select="siemens/MEAS/sWipMemBlock/adFree[position() &lt;= 16]">
+              <userParameterDouble>
+                <name>
+                  <xsl:value-of select="concat('T1pPrepDuration_', position())"/>
+                </name>
+                <value>
+                  <xsl:value-of select="." />
+                </value>
+              </userParameterDouble>
+            </xsl:for-each>
+          </xsl:if>
 
-        <!-- T2/T1p prep duration (RF only) -->
-        <xsl:if test="siemens/MEAS/sWipMemBlock/alFree">
-          <xsl:for-each select="siemens/MEAS/sWipMemBlock/alFree[position() &gt;= 31 and position() &lt;= 46]">
-            <userParameterDouble>
-              <name>
-                <xsl:value-of select="concat('T2pRfDuration_', position())"/>
-              </name>
-              <value>
-                <xsl:value-of select=". div 1000.0" />
-              </value>
-            </userParameterDouble>
-          </xsl:for-each>
+          <!-- T2/T1p prep duration (RF only) -->
+          <xsl:if test="siemens/MEAS/sWipMemBlock/alFree">
+            <xsl:for-each select="siemens/MEAS/sWipMemBlock/alFree[position() &gt;= 31 and position() &lt;= 46]">
+              <userParameterDouble>
+                <name>
+                  <xsl:value-of select="concat('T2pRfDuration_', position())"/>
+                </name>
+                <value>
+                  <xsl:value-of select=". div 1000.0" />
+                </value>
+              </userParameterDouble>
+            </xsl:for-each>
+          </xsl:if>
         </xsl:if>
 
         <!-- Saturation recovery times -->
