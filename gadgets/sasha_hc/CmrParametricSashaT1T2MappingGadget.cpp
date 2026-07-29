@@ -254,7 +254,7 @@ namespace Gadgetron {
             for (size_t ii = 0; ii < data->headers_.get_number_of_elements(); ii++)
             {
                 data->headers_(ii).contrast = 0;
-                GDEBUG_STREAM("ori image " << ii << ", pmu time is " << data->headers_(ii).physiology_time_stamp[0]);
+                // GDEBUG_STREAM("ori image " << ii << ", pmu time is " << data->headers_(ii).physiology_time_stamp[0]);
             }
 
             if (this->next()->putq(m1) == -1)
@@ -347,10 +347,11 @@ namespace Gadgetron {
             if (data->headers_(n).user_int[7] != 0)
             {
                 this->prep_times_ts_[n] = data->headers_(n).user_int[7] * 1e-3; // convert microsecond to ms
-                GDEBUG_STREAM("set ts from user_int, image "   <<                                       std::setw(2) << n
+                GDEBUG_STREAM("Image "   <<                                       std::setw(2) << n
                            << ": TS = "  << std::fixed << std::setprecision(1) << std::setw(6) << this->prep_times_ts_[n]  << "* ms "
                            << ", T2p = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t2p_[n] << " ms "
-                           << ", TSL = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t1p_[n] << " ms ");
+                           << ", TSL = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t1p_[n] << " ms "
+                           << " (TS set from user_int)");
             }
             else
             {
@@ -432,7 +433,7 @@ namespace Gadgetron {
                             m1->getObjectPtr()->meta_[ind].set("GADGETRON_T1RHO_PREP_TIME", (double)t1p);
                         }
 
-                        GDEBUG_STREAM("moco image " << ind << ", pmu time is " << m1->getObjectPtr()->headers_(ind).physiology_time_stamp[0]);
+                        // GDEBUG_STREAM("moco image " << ind << ", pmu time is " << m1->getObjectPtr()->headers_(ind).physiology_time_stamp[0]);
                     }
                 }
             }
@@ -967,20 +968,36 @@ namespace Gadgetron {
             memcpy(&(t1t2_sasha.ti_)[N*3],   &this->t2p_rf_duration_[0],        sizeof(float) * N);
             memcpy(&(t1t2_sasha.ti_)[N*4],   &this->time_t2p_to_center_kspace_, sizeof(float) * 1);
 
-            GDEBUG_STREAM("======================================");
-            for (size_t n = 0; n < this->prep_times_ts_.size(); n++)
             {
-                GDEBUG_STREAM("this->prep_times_ts_[" << n << "] = " << this->prep_times_ts_[n]);
-            }
-            GDEBUG_STREAM("======================================");
-            for (size_t n = 0; n < this->prep_times_t2p_.size(); n++)
-            {
-                GDEBUG_STREAM("this->prep_times_t2p_[" << n << "] = " << this->prep_times_t2p_[n]);
-            }
+                GDEBUG_STREAM("======================================");
+                GADGET_CHECK_RETURN(this->prep_times_t2p_.size() == this->prep_times_ts_.size(), GADGET_FAIL);
+                std::ostringstream ostrIdx;
+                std::ostringstream ostrTS;
+                std::ostringstream ostrT2p;
 
-            for (size_t n = 0; n < t1t2_sasha.ti_.size(); n++)
-            {
-                GDEBUG_STREAM("t1t2_sasha.ti[" << n << "] = " << t1t2_sasha.ti_[n]);
+                // Display the first index here because the TS is a large value requiring different setw for BH acquisitions
+                ostrIdx << "i:                  " << std::fixed << std::setprecision(0) << std::setw(8) <<                  0;
+                ostrTS  << "prep_times_ts_[i]:  " << std::fixed << std::setprecision(0) << std::setw(8) <<  prep_times_ts_[ 0];
+                ostrT2p << "prep_times_t2p_[i]: " << std::fixed << std::setprecision(0) << std::setw(8) <<  prep_times_t2p_[0];
+
+                for (size_t n = 1; n < this->prep_times_ts_.size(); n++)
+                {
+                    ostrIdx << " " << std::setw(4) <<                        n;
+                    ostrTS  << " " << std::setw(4) <<  this->prep_times_ts_[ n];
+                    ostrT2p << " " << std::setw(4) <<  this->prep_times_t2p_[n];
+                }
+
+                GDEBUG_STREAM(ostrIdx.str());
+                GDEBUG_STREAM(ostrTS.str());
+                GDEBUG_STREAM(ostrT2p.str());
+
+                GDEBUG_STREAM("======================================");
+                std::ostringstream ostrTI;
+                for (size_t n = 0; n < t1t2_sasha.ti_.size(); n++)
+                {
+                    ostrTI << " " << t1t2_sasha.ti_[n];
+                }
+                GDEBUG_STREAM("t1t2_sasha.ti[0-" << t1t2_sasha.ti_.size()-1 << "]:" << ostrTI.str());
             }
 
             size_t curr_slc = data.headers_(0).slice;
