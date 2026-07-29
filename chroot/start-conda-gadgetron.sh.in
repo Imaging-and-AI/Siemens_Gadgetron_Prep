@@ -19,7 +19,7 @@ if [ $# -ge 0 ] && [ $# -le 2 ]; then
     conda activate "@ENV_NAME@"
 
     OMP_THREAD_LIMIT=$(nproc)
-    gadgetron ${PORT_ARG} > ${LOG_FILE} &
+    GADGETRON_HOME=/opt/conda/envs/@ENV_NAME@ gadgetron ${PORT_ARG} > ${LOG_FILE} &
 
     gadgetron_job=($!)
     wait $!
