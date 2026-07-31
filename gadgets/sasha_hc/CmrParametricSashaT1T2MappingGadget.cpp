@@ -1,7 +1,10 @@
 
 #include "CmrParametricSashaT1T2MappingGadget.h"
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 
 #include "hoNDArray_reductions.h"
 #include "mri_core_def.h"
@@ -42,6 +45,9 @@ namespace Gadgetron {
             GDEBUG("acquisitionSystemInformation not found in header. Bailing out");
             return GADGET_FAIL;
         }
+
+        field_strength_T_ = h.acquisitionSystemInformation.get().systemFieldStrength_T();
+        GDEBUG_CONDITION_STREAM(verbose.value(), "field_strength_T_ is read from protocol : " << field_strength_T_);
 
         GDEBUG_STREAM("meas_max_idx_.repetition is " << meas_max_idx_.repetition);
         GDEBUG_STREAM("meas_max_idx_.average is " << meas_max_idx_.average);
@@ -520,6 +526,71 @@ namespace Gadgetron {
                 window_center_t1pmap = window_center_t1pmap_3T.value();
                 window_width_t1pmap = window_width_t1pmap_3T.value();
             }
+
+            // --- Adaptive T1 window: detect post-contrast by pixel statistics ---
+            // May override: window_center_t1map, window_width_t1map
+            {
+                const double crop_fraction = t1map_postcontrast_spatial_crop_fraction.value(); // e.g. 0.5 -> central 50% of RO x E1
+                const double pixel_min     = t1map_postcontrast_pixel_min.value();
+                const double pixel_max     = t1map_postcontrast_pixel_max.value();
+
+                // Central crop bounds in RO and E1
+                size_t ro_margin = static_cast<size_t>(std::floor(RO * (1.0 - crop_fraction) / 2.0));
+                size_t e1_margin = static_cast<size_t>(std::floor(E1 * (1.0 - crop_fraction) / 2.0));
+                size_t ro_lo = ro_margin,        ro_hi = RO - ro_margin;
+                size_t e1_lo = e1_margin,        e1_hi = E1 - e1_margin;
+
+                // Collect valid pixels from the central spatial crop.
+                // The T1 map has N=1, E2=1, CHA=1, so only iterate SLC, S, and the cropped RO/E1.
+                std::vector<float> valid_pixels;
+                valid_pixels.reserve((ro_hi - ro_lo) * (e1_hi - e1_lo) * S * SLC);
+
+                for (size_t islc = 0;     islc < SLC;   islc++)
+                for (size_t is   = 0;     is   < S;     is++)
+                for (size_t ie1  = e1_lo; ie1  < e1_hi; ie1++)
+                for (size_t iro  = ro_lo; iro  < ro_hi; iro++)
+                {
+                    float v = std::abs(t1map.data_(iro, ie1, 0, 0, 0, is, islc));
+                    if (v > static_cast<float>(pixel_min) && v < static_cast<float>(pixel_max))
+                        valid_pixels.push_back(v);
+                }
+
+                if (!valid_pixels.empty())
+                {
+                    std::sort(valid_pixels.begin(), valid_pixels.end());
+                    size_t n = valid_pixels.size();
+
+                    // Median
+                    size_t mid_idx   = n / 2;
+                    double t1_median = (n % 2 == 0)
+                        ? 0.5 * (valid_pixels[mid_idx - 1] + valid_pixels[mid_idx])
+                        : valid_pixels[mid_idx];
+
+                    // Max of valid pixels in the crop
+                    double t1_max = valid_pixels.back();
+
+                    GDEBUG_STREAM("T1 map pixel stats (central " << (crop_fraction * 100.0) << "%% crop): "
+                        << "median = " << t1_median << " ms, max = " << t1_max << " ms");
+
+                    if (t1_median < t1map_postcontrast_median_threshold.value())
+                    {
+                        if (this->field_strength_T_ > 2)
+                        {
+                            window_center_t1map = window_center_t1map_postcontrast_3T.value();
+                            window_width_t1map  = window_width_t1map_postcontrast_3T.value();
+                        }
+                        else
+                        {
+                            window_center_t1map = window_center_t1map_postcontrast_15T.value();
+                            window_width_t1map  = window_width_t1map_postcontrast_15T.value();
+                        }
+
+                        GDEBUG_STREAM("Post-contrast T1 map detected (median T1 below threshold " << t1map_postcontrast_median_threshold.value() << " ms), field strength = " << this->field_strength_T_ << "T. "
+                            << "Applying post-contrast window of center = " << window_center_t1map << " ms, width = " << window_width_t1map << " ms");
+                    }
+                }
+            }
+            // --- End adaptive T1 window ---
 
             std::ostringstream ostr;
             ostr << "x" << (double)scaling_factor_t1map.value();

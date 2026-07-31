@@ -67,6 +67,18 @@ namespace Gadgetron {
         GADGET_PROPERTY(window_center_t1pmap_3T, double, "Window center for T1p map at 3T",     60);
         GADGET_PROPERTY(window_width_t1pmap_3T, double, "Window width for T1p map at 3T",       120);
 
+        // Post-contrast T1 map window levels (applied when pixel stats indicate post-contrast)
+        GADGET_PROPERTY(window_center_t1map_postcontrast_15T, double, "Window center for post-contrast T1 map at 1.5T",  500);
+        GADGET_PROPERTY(window_width_t1map_postcontrast_15T,  double, "Window width for post-contrast T1 map at 1.5T",   600);
+        GADGET_PROPERTY(window_center_t1map_postcontrast_3T,  double, "Window center for post-contrast T1 map at 3T",    550);
+        GADGET_PROPERTY(window_width_t1map_postcontrast_3T,   double, "Window width for post-contrast T1 map at 3T",     700);
+
+        // Post-contrast detection: pixel statistics thresholds
+        GADGET_PROPERTY(t1map_postcontrast_spatial_crop_fraction, double, "Fraction (0-1) of the central image region (RO x E1) used for T1 stats (e.g. 0.5 -> central 50%)", 0.5);
+        GADGET_PROPERTY(t1map_postcontrast_pixel_min,             double, "Minimum valid T1 pixel value (ms) included in stats",   50.0);
+        GADGET_PROPERTY(t1map_postcontrast_pixel_max,             double, "Maximum valid T1 pixel value (ms) included in stats", 2500.0);
+        GADGET_PROPERTY(t1map_postcontrast_median_threshold,      double, "T1 median threshold (ms): values below trigger post-contrast window", 800.0);
+
         GADGET_PROPERTY(scaling_factor_t1map, double, "Scale factor for t1map", 1.0);
         GADGET_PROPERTY(scaling_factor_t2map, double, "Scale factor for t2map", 10.0);
         GADGET_PROPERTY(scaling_factor_t1pmap, double, "Scale factor for t1pmap", 10.0);
