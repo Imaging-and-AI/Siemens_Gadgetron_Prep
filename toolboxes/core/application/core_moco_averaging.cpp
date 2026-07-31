@@ -621,7 +621,7 @@ namespace Gadgetron {
 
             if ( verbose_ )
             {
-                register_.print(std::cout);
+                register_.print(std::cerr);
             }
 
             bool warped = moco_input_needed_;
@@ -681,7 +681,7 @@ namespace Gadgetron {
 
             if ( verbose_ )
             {
-                register_cross_row_.print(std::cout);
+                register_cross_row_.print(std::cerr);
             }
 
             bool warped = moco_input_needed_;
@@ -752,7 +752,7 @@ namespace Gadgetron {
 
             if ( verbose_ )
             {
-                register_cross_row_.print(std::cout);
+                register_cross_row_.print(std::cerr);
             }
 
             if (register_cross_row_.apply_divergence_free_constraint_)

@@ -39,6 +39,8 @@ set( config_files
     config/SASHA-HC_grappa_moco_debug.xml
     config/SASHA-HC_grappa_moco_istore.xml
     config/SASHA-HC_grappa_moco_dstore.xml
+    config/mSASHA_istore.xml
+    config/mSASHA_debug_istore.xml
     )
 
 set( config_schema_files
@@ -48,12 +50,15 @@ set( config_schema_files
     ../../schema/IsmrmrdParameterMap_Siemens_SashaT1T2_HC.xsl
     ../../schema/IsmrmrdParameterMap_Siemens_SashaT1T2T1p_HC.xml
     ../../schema/IsmrmrdParameterMap_Siemens_SashaT1T2T1p_HC.xsl
+    ../../schema/IsmrmrdParameterMap_Siemens_mSASHA.xml
+    ../../schema/IsmrmrdParameterMap_Siemens_mSASHA.xsl
     )
 
 set( sasha_hc_header_files 
      sashahclib_export.h 
      CalcMolliTiGadget.h
      CmrParametricSashaT1T2MappingGadget.h
+     DicomOrientationGadget.h
      DuplicateReferenceDataGadget.h
      FlagSashaHCGadget.h
      FlagSashaGadget.h
@@ -67,6 +72,7 @@ set( sasha_hc_header_files
 set( sasha_hc_src_files 
     CalcMolliTiGadget.cpp
     CmrParametricSashaT1T2MappingGadget.cpp
+    DicomOrientationGadget.cpp
     DuplicateReferenceDataGadget.cpp
     FlagSashaHCGadget.cpp
     FlagSashaGadget.cpp

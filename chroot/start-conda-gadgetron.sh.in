@@ -1,0 +1,30 @@
+#!/bin/bash
+
+gadgetron_job=0
+trap '(($gadgetron_job == 0)) || ((`kill -0 $gadgetron_job`))|| kill $gadgetron_job' HUP TERM INT
+
+LOG_FILE="/tmp/gadgetron.log"
+if [ $# -ge 0 ] && [ $# -le 2 ]; then
+    if [ $# -ge 1 ]; then
+        LOG_FILE="${1}"
+    fi
+
+    PORT_ARG=""
+    if [ $# -eq 2 ]; then
+        PORT_ARG="-p ${2}"
+    fi
+
+    # Use conda environment (will set PATHs too)
+    source "/opt/conda/etc/profile.d/conda.sh"
+    conda activate "@ENV_NAME@"
+
+    OMP_THREAD_LIMIT=$(nproc)
+    GADGETRON_HOME=/opt/conda/envs/@ENV_NAME@ gadgetron ${PORT_ARG} > ${LOG_FILE} &
+
+    gadgetron_job=($!)
+    wait $!
+    exit 0
+else
+    echo -e "\nUsage: $0 [log file in chroot] [port]\n"
+    exit 1
+fi

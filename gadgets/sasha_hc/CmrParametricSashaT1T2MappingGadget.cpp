@@ -1,7 +1,10 @@
 
 #include "CmrParametricSashaT1T2MappingGadget.h"
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 
 #include "hoNDArray_reductions.h"
 #include "mri_core_def.h"
@@ -42,6 +45,9 @@ namespace Gadgetron {
             GDEBUG("acquisitionSystemInformation not found in header. Bailing out");
             return GADGET_FAIL;
         }
+
+        field_strength_T_ = h.acquisitionSystemInformation.get().systemFieldStrength_T();
+        GDEBUG_CONDITION_STREAM(verbose.value(), "field_strength_T_ is read from protocol : " << field_strength_T_);
 
         GDEBUG_STREAM("meas_max_idx_.repetition is " << meas_max_idx_.repetition);
         GDEBUG_STREAM("meas_max_idx_.average is " << meas_max_idx_.average);
@@ -254,7 +260,7 @@ namespace Gadgetron {
             for (size_t ii = 0; ii < data->headers_.get_number_of_elements(); ii++)
             {
                 data->headers_(ii).contrast = 0;
-                GDEBUG_STREAM("ori image " << ii << ", pmu time is " << data->headers_(ii).physiology_time_stamp[0]);
+                // GDEBUG_STREAM("ori image " << ii << ", pmu time is " << data->headers_(ii).physiology_time_stamp[0]);
             }
 
             if (this->next()->putq(m1) == -1)
@@ -347,10 +353,11 @@ namespace Gadgetron {
             if (data->headers_(n).user_int[7] != 0)
             {
                 this->prep_times_ts_[n] = data->headers_(n).user_int[7] * 1e-3; // convert microsecond to ms
-                GDEBUG_STREAM("set ts from user_int, image "   <<                                       std::setw(2) << n
+                GDEBUG_STREAM("Image "   <<                                       std::setw(2) << n
                            << ": TS = "  << std::fixed << std::setprecision(1) << std::setw(6) << this->prep_times_ts_[n]  << "* ms "
                            << ", T2p = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t2p_[n] << " ms "
-                           << ", TSL = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t1p_[n] << " ms ");
+                           << ", TSL = " << std::fixed << std::setprecision(1) << std::setw(5) << this->prep_times_t1p_[n] << " ms "
+                           << " (TS set from user_int)");
             }
             else
             {
@@ -432,7 +439,7 @@ namespace Gadgetron {
                             m1->getObjectPtr()->meta_[ind].set("GADGETRON_T1RHO_PREP_TIME", (double)t1p);
                         }
 
-                        GDEBUG_STREAM("moco image " << ind << ", pmu time is " << m1->getObjectPtr()->headers_(ind).physiology_time_stamp[0]);
+                        // GDEBUG_STREAM("moco image " << ind << ", pmu time is " << m1->getObjectPtr()->headers_(ind).physiology_time_stamp[0]);
                     }
                 }
             }
@@ -519,6 +526,71 @@ namespace Gadgetron {
                 window_center_t1pmap = window_center_t1pmap_3T.value();
                 window_width_t1pmap = window_width_t1pmap_3T.value();
             }
+
+            // --- Adaptive T1 window: detect post-contrast by pixel statistics ---
+            // May override: window_center_t1map, window_width_t1map
+            {
+                const double crop_fraction = t1map_postcontrast_spatial_crop_fraction.value(); // e.g. 0.5 -> central 50% of RO x E1
+                const double pixel_min     = t1map_postcontrast_pixel_min.value();
+                const double pixel_max     = t1map_postcontrast_pixel_max.value();
+
+                // Central crop bounds in RO and E1
+                size_t ro_margin = static_cast<size_t>(std::floor(RO * (1.0 - crop_fraction) / 2.0));
+                size_t e1_margin = static_cast<size_t>(std::floor(E1 * (1.0 - crop_fraction) / 2.0));
+                size_t ro_lo = ro_margin,        ro_hi = RO - ro_margin;
+                size_t e1_lo = e1_margin,        e1_hi = E1 - e1_margin;
+
+                // Collect valid pixels from the central spatial crop.
+                // The T1 map has N=1, E2=1, CHA=1, so only iterate SLC, S, and the cropped RO/E1.
+                std::vector<float> valid_pixels;
+                valid_pixels.reserve((ro_hi - ro_lo) * (e1_hi - e1_lo) * S * SLC);
+
+                for (size_t islc = 0;     islc < SLC;   islc++)
+                for (size_t is   = 0;     is   < S;     is++)
+                for (size_t ie1  = e1_lo; ie1  < e1_hi; ie1++)
+                for (size_t iro  = ro_lo; iro  < ro_hi; iro++)
+                {
+                    float v = std::abs(t1map.data_(iro, ie1, 0, 0, 0, is, islc));
+                    if (v > static_cast<float>(pixel_min) && v < static_cast<float>(pixel_max))
+                        valid_pixels.push_back(v);
+                }
+
+                if (!valid_pixels.empty())
+                {
+                    std::sort(valid_pixels.begin(), valid_pixels.end());
+                    size_t n = valid_pixels.size();
+
+                    // Median
+                    size_t mid_idx   = n / 2;
+                    double t1_median = (n % 2 == 0)
+                        ? 0.5 * (valid_pixels[mid_idx - 1] + valid_pixels[mid_idx])
+                        : valid_pixels[mid_idx];
+
+                    // Max of valid pixels in the crop
+                    double t1_max = valid_pixels.back();
+
+                    GDEBUG_STREAM("T1 map pixel stats (central " << (crop_fraction * 100.0) << "%% crop): "
+                        << "median = " << t1_median << " ms, max = " << t1_max << " ms");
+
+                    if (t1_median < t1map_postcontrast_median_threshold.value())
+                    {
+                        if (this->field_strength_T_ > 2)
+                        {
+                            window_center_t1map = window_center_t1map_postcontrast_3T.value();
+                            window_width_t1map  = window_width_t1map_postcontrast_3T.value();
+                        }
+                        else
+                        {
+                            window_center_t1map = window_center_t1map_postcontrast_15T.value();
+                            window_width_t1map  = window_width_t1map_postcontrast_15T.value();
+                        }
+
+                        GDEBUG_STREAM("Post-contrast T1 map detected (median T1 below threshold " << t1map_postcontrast_median_threshold.value() << " ms), field strength = " << this->field_strength_T_ << "T. "
+                            << "Applying post-contrast window of center = " << window_center_t1map << " ms, width = " << window_width_t1map << " ms");
+                    }
+                }
+            }
+            // --- End adaptive T1 window ---
 
             std::ostringstream ostr;
             ostr << "x" << (double)scaling_factor_t1map.value();
@@ -967,20 +1039,36 @@ namespace Gadgetron {
             memcpy(&(t1t2_sasha.ti_)[N*3],   &this->t2p_rf_duration_[0],        sizeof(float) * N);
             memcpy(&(t1t2_sasha.ti_)[N*4],   &this->time_t2p_to_center_kspace_, sizeof(float) * 1);
 
-            GDEBUG_STREAM("======================================");
-            for (size_t n = 0; n < this->prep_times_ts_.size(); n++)
             {
-                GDEBUG_STREAM("this->prep_times_ts_[" << n << "] = " << this->prep_times_ts_[n]);
-            }
-            GDEBUG_STREAM("======================================");
-            for (size_t n = 0; n < this->prep_times_t2p_.size(); n++)
-            {
-                GDEBUG_STREAM("this->prep_times_t2p_[" << n << "] = " << this->prep_times_t2p_[n]);
-            }
+                GDEBUG_STREAM("======================================");
+                GADGET_CHECK_RETURN(this->prep_times_t2p_.size() == this->prep_times_ts_.size(), GADGET_FAIL);
+                std::ostringstream ostrIdx;
+                std::ostringstream ostrTS;
+                std::ostringstream ostrT2p;
 
-            for (size_t n = 0; n < t1t2_sasha.ti_.size(); n++)
-            {
-                GDEBUG_STREAM("t1t2_sasha.ti[" << n << "] = " << t1t2_sasha.ti_[n]);
+                // Display the first index here because the TS is a large value requiring different setw for BH acquisitions
+                ostrIdx << "i:                  " << std::fixed << std::setprecision(0) << std::setw(8) <<                  0;
+                ostrTS  << "prep_times_ts_[i]:  " << std::fixed << std::setprecision(0) << std::setw(8) <<  prep_times_ts_[ 0];
+                ostrT2p << "prep_times_t2p_[i]: " << std::fixed << std::setprecision(0) << std::setw(8) <<  prep_times_t2p_[0];
+
+                for (size_t n = 1; n < this->prep_times_ts_.size(); n++)
+                {
+                    ostrIdx << " " << std::setw(4) <<                        n;
+                    ostrTS  << " " << std::setw(4) <<  this->prep_times_ts_[ n];
+                    ostrT2p << " " << std::setw(4) <<  this->prep_times_t2p_[n];
+                }
+
+                GDEBUG_STREAM(ostrIdx.str());
+                GDEBUG_STREAM(ostrTS.str());
+                GDEBUG_STREAM(ostrT2p.str());
+
+                GDEBUG_STREAM("======================================");
+                std::ostringstream ostrTI;
+                for (size_t n = 0; n < t1t2_sasha.ti_.size(); n++)
+                {
+                    ostrTI << " " << t1t2_sasha.ti_[n];
+                }
+                GDEBUG_STREAM("t1t2_sasha.ti[0-" << t1t2_sasha.ti_.size()-1 << "]:" << ostrTI.str());
             }
 
             size_t curr_slc = data.headers_(0).slice;

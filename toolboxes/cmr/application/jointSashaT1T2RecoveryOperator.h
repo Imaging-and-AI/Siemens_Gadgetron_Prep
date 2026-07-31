@@ -164,7 +164,7 @@ namespace Gadgetron {
             tsl[          i] = x[i+num*2];
             t2pRfDuration[i] = x[i+num*3];
         }
-        timeT2pToCenter = x[4*num+1];
+        timeT2pToCenter = x[num*4];
 
         for (size_t i=0; i<num; i++)
         {
