@@ -1634,6 +1634,30 @@
           </xsl:for-each>
         </xsl:if>
 
+        <!-- Hematocrit -->
+        <xsl:choose>
+          <xsl:when test="siemens/MEAS/sWipMemBlock/alFree[59] and not(siemens/MEAS/sWipMemBlock/alFree[59] = 0)">
+            <!-- New format -->
+            <userParameterDouble>
+                <name>HCT</name>
+                <value>
+                    <xsl:value-of select="siemens/MEAS/sWipMemBlock/alFree[59]" />
+                </value>
+            </userParameterDouble>
+          </xsl:when>
+          <xsl:otherwise>
+            <!-- Backwards compatibility with non-T1rho sequence -->
+            <xsl:if test="siemens/MEAS/sWipMemBlock/adFree[3]">
+              <userParameterDouble>
+                <name>HCT</name>
+                <value>
+                  <xsl:value-of select="siemens/MEAS/sWipMemBlock/adFree[3]" />
+                </value>
+              </userParameterDouble>
+            </xsl:if>
+          </xsl:otherwise>
+        </xsl:choose>
+
         <xsl:if test="siemens/MEAS/sWipMemBlock/adFree[3] and not(siemens/MEAS/sWipMemBlock/adFree[3] = 0)">
           <userParameterDouble>
             <name>HCT</name>
